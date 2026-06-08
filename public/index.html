@@ -267,7 +267,9 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
 
 <script>
 // ── Config ──────────────────────────────────────────────────────
-const WS_URL = `ws://${location.host}`;
+const WS_URL = location.protocol === "https:"
+  ? `wss://${location.host}`
+  : `ws://${location.host}`;
 
 // ── State ───────────────────────────────────────────────────────
 let ws, myId, myName, myRole = "guesser", isHost = false;
