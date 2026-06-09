@@ -22,30 +22,42 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
 .tagline{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:3px;opacity:.5;margin-top:-10px}
 .card{background:var(--cream);border:var(--border);border-radius:var(--radius);
   box-shadow:var(--shadow);padding:28px 32px;display:flex;flex-direction:column;
-  gap:14px;width:min(400px,92vw)}
+  gap:14px;width:min(420px,92vw)}
 .card label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:-8px}
-.card input, .card select{padding:10px 14px;border:var(--border);border-radius:8px;font-family:inherit;
+.card input,.card select{padding:10px 14px;border:var(--border);border-radius:8px;font-family:inherit;
   font-size:15px;font-weight:700;background:var(--paper);outline:none;appearance:none;-webkit-appearance:none}
-.card input:focus, .card select:focus{box-shadow:3px 3px 0 var(--teal);border-color:var(--teal)}
+.card input:focus,.card select:focus{box-shadow:3px 3px 0 var(--teal);border-color:var(--teal)}
+.card input:disabled,.card select:disabled{opacity:.45;cursor:not-allowed}
 .btn{padding:12px 20px;font-family:'Bangers',cursive;font-size:22px;letter-spacing:2px;
   border:var(--border);border-radius:8px;cursor:pointer;transition:transform .1s,box-shadow .1s;
   box-shadow:var(--shadow)}
 .btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-teal{background:var(--teal);color:#fff}
 .btn-yellow{background:var(--yellow);color:var(--ink)}
 #lobbyPlayerList{list-style:none;display:flex;flex-wrap:wrap;gap:8px}
 #lobbyPlayerList li{background:var(--yellow);border:2px solid var(--ink);border-radius:20px;
   padding:4px 14px;font-weight:800;font-size:13px}
+#lobbyPlayerList li.host-tag::after{content:" 👑";font-size:11px}
 .settings-row{display:flex;gap:12px}
 .settings-row > div{flex:1;display:flex;flex-direction:column;gap:6px}
 .settings-note{font-size:11px;opacity:.5;text-align:center}
+.settings-locked-note{font-size:11px;color:var(--blue);font-weight:700;text-align:center}
 #hostOnlySettings{display:none}
+.lobby-mode-tabs{display:flex;gap:0;border:var(--border);border-radius:8px;overflow:hidden}
+.lobby-tab{flex:1;padding:10px;font-family:'Bangers',cursive;font-size:18px;letter-spacing:1px;
+  background:var(--paper);border:none;cursor:pointer;transition:background .15s;color:var(--ink)}
+.lobby-tab.active{background:var(--accent);color:#fff}
+.room-code-display{background:var(--yellow);border:var(--border);border-radius:8px;
+  padding:10px 14px;text-align:center;font-family:'Bangers',cursive;font-size:22px;
+  letter-spacing:4px;color:var(--ink)}
+.room-code-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;
+  opacity:.5;margin-bottom:-6px;text-align:center}
 
 /* ── GAME ── */
 #game{display:none;width:100vw;height:100vh;flex-direction:column;overflow:hidden}
 #game.active{display:flex}
-
 #topBar{flex-shrink:0;height:54px;display:flex;align-items:center;gap:12px;
   padding:0 16px;background:var(--ink);color:#fff}
 #topBar .logo-sm{font-family:'Bangers',cursive;font-size:26px;letter-spacing:2px;
@@ -58,7 +70,6 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
 @keyframes pulse{to{opacity:.4}}
 #roundBadge{background:var(--teal);color:#fff;border-radius:6px;padding:2px 10px;
   font-weight:800;font-size:12px;flex-shrink:0}
-
 #mainRow{flex:1;display:flex;overflow:hidden;min-height:0}
 
 /* player panel */
@@ -124,6 +135,7 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
 .chat-msg.system{color:var(--blue);font-weight:700;font-style:italic}
 .chat-msg.correct{background:#d4edda;font-weight:800;color:#155724;border-left:3px solid #28a745}
 .chat-msg.self{background:#e8f4fd;border-left:3px solid var(--blue)}
+.chat-msg.drawer-chat{background:#fff8e1;border-left:3px solid var(--yellow)}
 .chat-msg strong{font-weight:800}
 #chatInputRow{display:flex;border-top:var(--border);flex-shrink:0}
 #chatInput{flex:1;padding:9px 8px;border:none;font-family:inherit;font-size:13px;
@@ -153,20 +165,65 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
   <div class="tagline">Draw · Guess · Win</div>
 
   <div class="card" id="joinCard">
+    <!-- Mode tabs: Create or Join -->
+    <div class="lobby-mode-tabs">
+      <button class="lobby-tab active" id="tabCreate" onclick="setLobbyMode('create')">✏️ Create Room</button>
+      <button class="lobby-tab" id="tabJoin" onclick="setLobbyMode('join')">🚪 Join Room</button>
+    </div>
+
     <label>Your Name</label>
     <input id="nameInput" placeholder="e.g. Picasso" maxlength="16"/>
-    <label>Room Code</label>
-    <input id="roomInput" placeholder="e.g. fun123" maxlength="20"/>
-    <button class="btn btn-primary" id="joinBtn">Join Room →</button>
+
+    <div id="createSection">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <!-- Settings shown upfront for creator -->
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px">⚙️ Game Settings</div>
+        <div class="settings-row">
+          <div>
+            <label>Rounds</label>
+            <select id="settingRoundsLobby">
+              <option value="1">1 round</option>
+              <option value="2">2 rounds</option>
+              <option value="3" selected>3 rounds</option>
+              <option value="4">4 rounds</option>
+              <option value="5">5 rounds</option>
+            </select>
+          </div>
+          <div>
+            <label>Draw Time</label>
+            <select id="settingTimeLobby">
+              <option value="30">30 sec</option>
+              <option value="45">45 sec</option>
+              <option value="60">60 sec</option>
+              <option value="80" selected>80 sec</option>
+              <option value="120">120 sec</option>
+              <option value="180">180 sec</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="createBtn" style="background:var(--accent);color:#fff;font-family:'Bangers',cursive;font-size:22px;letter-spacing:2px;border:var(--border);border-radius:8px;cursor:pointer;padding:12px 20px;box-shadow:var(--shadow)">Create Room →</button>
+      </div>
+    </div>
+
+    <div id="joinSection" style="display:none;flex-direction:column;gap:14px">
+      <label>Room Code</label>
+      <input id="roomInput" placeholder="Enter room code" maxlength="20"/>
+      <button class="btn btn-primary" id="joinBtn">Join Room →</button>
+    </div>
   </div>
 
+  <!-- Wait room card -->
   <div class="card" id="waitCard" style="display:none">
     <div style="font-family:'Bangers',cursive;font-size:22px;letter-spacing:2px">Waiting for players…</div>
+
+    <div class="room-code-label">Share this room code</div>
+    <div class="room-code-display" id="displayRoomCode">---</div>
+
     <ul id="lobbyPlayerList"></ul>
 
-    <!-- Settings (host only) -->
+    <!-- Settings shown in lobby for host (can still change before start) -->
     <div id="hostOnlySettings">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">⚙️ Game Settings</div>
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">⚙️ Change Settings</div>
       <div class="settings-row">
         <div>
           <label>Rounds</label>
@@ -192,8 +249,12 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
       </div>
     </div>
 
+    <div id="nonHostSettingsNote" style="display:none" class="settings-locked-note">
+      ⚙️ Host controls game settings
+    </div>
+
     <button class="btn btn-teal" id="startBtn">▶ Start Game!</button>
-    <div class="settings-note">Need at least 2 players</div>
+    <div class="settings-note">Need at least 2 players · Only host can start</div>
   </div>
 </div>
 
@@ -278,10 +339,10 @@ let currentColor = "#1a1a2e", currentSize = 8;
 let fillMode = false, eraserMode = false;
 let playerData = {};
 let roundNum = 1, totalRounds = 3, roundTime = 80;
+let lobbyMode = "create"; // "create" or "join"
+let currentRoomId = null;
 
-// Undo history: array of stroke groups. Each group = array of segment objects.
-// We push a new group on mousedown, push segments into current group on mousemove.
-let strokeHistory = []; // [ [seg, seg, ...], [seg, seg, ...], ... ]
+let strokeHistory = [];
 let currentGroup = null;
 
 // ── DOM ─────────────────────────────────────────────────────────
@@ -293,11 +354,16 @@ const waitCard        = $("waitCard");
 const nameInput       = $("nameInput");
 const roomInput       = $("roomInput");
 const joinBtn         = $("joinBtn");
+const createBtn       = $("createBtn");
 const startBtn        = $("startBtn");
 const lobbyList       = $("lobbyPlayerList");
 const hostSettings    = $("hostOnlySettings");
+const nonHostNote     = $("nonHostSettingsNote");
 const settingRounds   = $("settingRounds");
 const settingTime     = $("settingTime");
+const settingRoundsL  = $("settingRoundsLobby");
+const settingTimeL    = $("settingTimeLobby");
+const displayRoomCode = $("displayRoomCode");
 const playerPanel     = $("playerPanel");
 const wordDisplay     = $("wordDisplay");
 const timerEl         = $("timer");
@@ -318,10 +384,18 @@ const eraserBtn       = $("eraserBtn");
 const fillBtn         = $("fillBtn");
 const undoBtn         = $("undoBtn");
 
+// ── Lobby mode ────────────────────────────────────────────────────
+window.setLobbyMode = function(mode) {
+  lobbyMode = mode;
+  $("tabCreate").classList.toggle("active", mode === "create");
+  $("tabJoin").classList.toggle("active", mode === "join");
+  $("createSection").style.display = mode === "create" ? "block" : "none";
+  $("joinSection").style.display = mode === "join" ? "flex" : "none";
+};
+
 // ── Canvas resize ─────────────────────────────────────────────────
 function resizeCanvas() {
   const r = canvasWrap.getBoundingClientRect();
-  // Snapshot current pixels
   const snap = ctx.getImageData(0, 0, canvas.width || 1, canvas.height || 1);
   canvas.width  = r.width;
   canvas.height = r.height;
@@ -345,7 +419,9 @@ function drawSeg(seg) {
 
 function redrawAll() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  strokeHistory.forEach(group => group.forEach(drawSeg));
+  strokeHistory.forEach(group => {
+    if (Array.isArray(group)) group.forEach(drawSeg);
+  });
 }
 
 // ── Flood fill ────────────────────────────────────────────────────
@@ -368,7 +444,7 @@ function floodFill(startX, startY, fillColor) {
   const targetColor = [data[si], data[si+1], data[si+2], data[si+3]];
   const fill = hexToRgba(fillColor);
 
-  if (colorsMatch(targetColor, fill, 5)) return; // Already same color
+  if (colorsMatch(targetColor, fill, 5)) return;
 
   const stack = [[Math.round(startX), Math.round(startY)]];
   const visited = new Uint8Array(w * h);
@@ -402,7 +478,7 @@ function onPointerDown(e) {
   if (fillMode) {
     const [x, y] = getPos(e);
     floodFill(x, y, currentColor);
-    // Sync fill: send a special fill event
+    // Sync fill to all clients
     ws && ws.send(JSON.stringify({ type:"fill", data:{ x, y, c: currentColor } }));
     return;
   }
@@ -410,7 +486,6 @@ function onPointerDown(e) {
   [lastX, lastY] = getPos(e);
   currentGroup = [];
   strokeHistory.push(currentGroup);
-  // Tell server about mousedown for undo grouping
   ws && ws.send(JSON.stringify({ type:"mouseDown" }));
 }
 
@@ -459,20 +534,13 @@ document.querySelectorAll(".size-btn").forEach(btn => {
 eraserBtn.addEventListener("click", () => {
   eraserMode = !eraserMode;
   eraserBtn.classList.toggle("active", eraserMode);
-  if (eraserMode) {
-    fillMode = false;
-    fillBtn.classList.remove("active");
-  }
+  if (eraserMode) { fillMode = false; fillBtn.classList.remove("active"); }
 });
 
 fillBtn.addEventListener("click", () => {
   fillMode = !fillMode;
   fillBtn.classList.toggle("active", fillMode);
-  if (fillMode) {
-    eraserMode = false;
-    eraserBtn.classList.remove("active");
-    canvas.style.cursor = "crosshair"; // Could swap to bucket cursor
-  }
+  if (fillMode) { eraserMode = false; eraserBtn.classList.remove("active"); }
 });
 
 undoBtn.addEventListener("click", doUndo);
@@ -484,7 +552,6 @@ function doUndo() {
   ws && ws.send(JSON.stringify({ type:"undoCanvas" }));
 }
 
-// Ctrl+Z undo
 document.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key === "z" && myRole === "drawer") {
     e.preventDefault();
@@ -510,7 +577,14 @@ function addChat(html, cls = "") {
 function sendGuess() {
   const text = chatInput.value.trim();
   if (!text || !ws) return;
-  ws.send(JSON.stringify({ type:"guess", text }));
+
+  if (myRole === "drawer") {
+    // Drawer can chat but not guess — send as drawerChat
+    ws.send(JSON.stringify({ type:"drawerChat", text }));
+    addChat(`<strong>${esc(myName)} ✏️:</strong> ${esc(text)}`, "drawer-chat self");
+  } else {
+    ws.send(JSON.stringify({ type:"guess", text }));
+  }
   chatInput.value = "";
 }
 
@@ -543,11 +617,12 @@ function esc(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
-function updateLobbyList(players) {
+function updateLobbyList(players, hostName) {
   lobbyList.innerHTML = "";
   players.forEach(name => {
     const li = document.createElement("li");
     li.textContent = name;
+    if (name === hostName) li.classList.add("host-tag");
     lobbyList.appendChild(li);
   });
 }
@@ -558,7 +633,7 @@ function switchToGame() {
   requestAnimationFrame(() => requestAnimationFrame(resizeCanvas));
 }
 
-// ── Settings ──────────────────────────────────────────────────────
+// ── Settings (in-lobby host controls) ─────────────────────────────
 function onSettingChange() {
   if (!ws || !isHost) return;
   ws.send(JSON.stringify({
@@ -579,37 +654,59 @@ function connect(name, room) {
 }
 
 // ── Message handler ───────────────────────────────────────────────
+let hostPlayerName = null;
+
 function handleMsg(msg) {
   switch (msg.type) {
 
     case "joined":
       myId = msg.id; myName = msg.name;
       isHost = msg.isHost || false;
+      currentRoomId = msg.roomId;
       if (msg.settings) {
         totalRounds = msg.settings.roundsTotal;
         roundTime   = msg.settings.roundTime;
       }
       joinCard.style.display = "none";
       waitCard.style.display = "";
-      if (isHost) hostSettings.style.display = "";
-      updateLobbyList(msg.players);
+      displayRoomCode.textContent = msg.roomId.toUpperCase();
+
+      // Show/hide host vs non-host UI
+      if (isHost) {
+        hostSettings.style.display = "";
+        nonHostNote.style.display = "none";
+        startBtn.disabled = false;
+        // Sync lobby settings selects
+        settingRounds.value = msg.settings.roundsTotal;
+        settingTime.value = msg.settings.roundTime;
+      } else {
+        hostSettings.style.display = "none";
+        nonHostNote.style.display = "";
+        startBtn.disabled = true;
+      }
+
+      // Figure out host name from players list (first joined = host, for display)
+      hostPlayerName = msg.players[0]; // server sends ordered list; host is first
+      updateLobbyList(msg.players, hostPlayerName);
       addChat(`✅ Joined room <strong>${esc(msg.roomId)}</strong>`, "system");
       break;
 
     case "youAreHost":
       isHost = true;
       hostSettings.style.display = "";
+      nonHostNote.style.display = "none";
+      startBtn.disabled = false;
       addChat("👑 You are now the host!", "system");
       break;
 
     case "playerJoined":
-      updateLobbyList(msg.players);
+      updateLobbyList(msg.players, hostPlayerName);
       addChat(`👋 <strong>${esc(msg.name)}</strong> joined!`, "system");
       break;
 
     case "playerLeft":
       if (msg.players) {
-        updateLobbyList(msg.players);
+        updateLobbyList(msg.players, hostPlayerName);
         const ns = new Set(msg.players);
         Object.keys(playerData).forEach(n => { if (!ns.has(n)) delete playerData[n]; });
         renderPlayers();
@@ -620,9 +717,11 @@ function handleMsg(msg) {
     case "settingsUpdated":
       totalRounds = msg.roundsTotal;
       roundTime   = msg.roundTime;
+      // Keep selects in sync
+      settingRounds.value = msg.roundsTotal;
+      settingTime.value = msg.roundTime;
       if (!isHost) {
-        // Update selects for non-host (read-only display)
-        addChat(`⚙️ Settings updated: ${msg.roundsTotal} rounds, ${msg.roundTime}s/turn`, "system");
+        addChat(`⚙️ Host updated settings: ${msg.roundsTotal} rounds, ${msg.roundTime}s/turn`, "system");
       }
       break;
 
@@ -642,12 +741,17 @@ function handleMsg(msg) {
       addChat("🎮 Game starting!", "system");
       break;
 
+    case "roundInfo":
+      // Server tells us the new round number
+      roundNum = msg.round;
+      roundBadge.textContent = `Round ${roundNum}/${msg.roundsTotal}`;
+      break;
+
     case "phase":
       roundBadge.textContent = `Round ${roundNum}/${totalRounds}`;
       Object.keys(playerData).forEach(n => { playerData[n].drawing=false; playerData[n].guessed=false; });
 
       if (msg.phase === "choosing") {
-        // I am the drawer — clear canvas, show toolbar, wait for chooseWord overlay
         myRole = "drawer";
         toolbar.classList.remove("hidden");
         wordDisplay.textContent = "Choose a word!";
@@ -657,10 +761,12 @@ function handleMsg(msg) {
         if (playerData[msg.drawer]) playerData[msg.drawer].drawing = true;
         renderPlayers();
         choosingBanner.style.display = "none";
+        // Chat enabled for drawer too
+        chatInput.disabled = false;
+        chatInput.placeholder = "Chat (you're drawing)…";
       }
 
       if (msg.phase === "choosingWait") {
-        // I am a guesser — show banner while drawer picks
         myRole = "guesser";
         toolbar.classList.add("hidden");
         wordDisplay.textContent = `${esc(msg.drawer)} is choosing…`;
@@ -678,7 +784,6 @@ function handleMsg(msg) {
       break;
 
     case "chooseWord":
-      // Only the drawer receives this — show word choices as big overlay
       choosingBanner.style.display = "none";
       const grid = msg.words.map(w =>
         `<button class="word-choice-btn" onclick="pickWord('${esc(w)}')">${esc(w)}</button>`
@@ -692,16 +797,17 @@ function handleMsg(msg) {
       timerEl.classList.remove("urgent");
       timerEl.textContent = msg.timeLeft;
       chatInput.disabled = false;
-      chatInput.placeholder = "Type your guess…";
 
       if (msg.role === "drawer") {
         wordDisplay.textContent = msg.word.toUpperCase();
         myRole = "drawer";
         toolbar.classList.remove("hidden");
+        chatInput.placeholder = "Chat (you're drawing)…";
       } else {
         wordDisplay.textContent = msg.masked.split("").join(" ");
         myRole = "guesser";
         toolbar.classList.add("hidden");
+        chatInput.placeholder = "Type your guess…";
         addChat(`✏️ <strong>${esc(msg.drawer)}</strong> is drawing — ${esc(msg.hint)}`, "system");
       }
       break;
@@ -713,7 +819,6 @@ function handleMsg(msg) {
 
     case "draw":
       drawSeg(msg.data);
-      // Track on guesser side for redraw (e.g. resize)
       if (myRole !== "drawer") {
         if (!strokeHistory.length || strokeHistory[strokeHistory.length-1] === null) {
           strokeHistory.push([]);
@@ -724,19 +829,22 @@ function handleMsg(msg) {
       break;
 
     case "fill":
-      if (myRole !== "drawer") {
-        floodFill(msg.data.x, msg.data.y, msg.data.c);
-      }
+      // Apply fill on guesser side too — fix: always apply regardless of role
+      floodFill(msg.data.x, msg.data.y, msg.data.c);
       break;
 
     case "strokes":
       strokeHistory = [];
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Rebuild stroke history from flat array with nulls as separators
       let grp = [];
       (msg.strokes || []).forEach(s => {
         if (s === null) { strokeHistory.push(grp); grp = []; }
-        else { grp.push(s); drawSeg(s); }
+        else if (s && s.fill) {
+          // It's a fill stroke — apply it
+          floodFill(s.x, s.y, s.c);
+        } else {
+          grp.push(s); drawSeg(s);
+        }
       });
       if (grp.length) strokeHistory.push(grp);
       break;
@@ -747,7 +855,11 @@ function handleMsg(msg) {
       let rgrp = [];
       (msg.strokes || []).forEach(s => {
         if (s === null) { strokeHistory.push(rgrp); rgrp = []; }
-        else { rgrp.push(s); drawSeg(s); }
+        else if (s && s.fill) {
+          floodFill(s.x, s.y, s.c);
+        } else {
+          rgrp.push(s); drawSeg(s);
+        }
       });
       if (rgrp.length) strokeHistory.push(rgrp);
       break;
@@ -770,22 +882,27 @@ function handleMsg(msg) {
       break;
 
     case "chat":
-      addChat(`<strong>${esc(msg.name)}:</strong> ${esc(msg.text)}`, msg.name===myName?"self":"");
+      if (msg.isDrawer) {
+        // Drawer chatted — style differently
+        addChat(`<strong>${esc(msg.name)} ✏️:</strong> ${esc(msg.text)}`, "drawer-chat");
+      } else {
+        addChat(`<strong>${esc(msg.name)}:</strong> ${esc(msg.text)}`, msg.name===myName?"self":"");
+      }
       break;
 
     case "roundEnd":
-      roundNum++;
+      roundNum = msg.round || roundNum;
       timerEl.classList.remove("urgent");
       timerEl.textContent = "";
       chatInput.disabled = false;
-      chatInput.placeholder = "Type your guess…";
+      chatInput.placeholder = "Type guess…";
       toolbar.classList.add("hidden");
       wordDisplay.textContent = "- - -";
       myRole = "guesser";
       const rows = msg.scores.map((s, i) =>
         `<div class="score-row"><span>${["🥇","🥈","🥉"][i]||"  "} ${esc(s.name)}</span><span>${s.score} pts</span></div>`
       ).join("");
-      showOverlay(`Word: ${esc(msg.word)}`,
+      showOverlay(`Word was: ${esc(msg.word)}`,
         `<div style="display:flex;flex-direction:column;gap:7px;margin-top:4px">${rows}</div>`);
       msg.scores.forEach(s => { if (playerData[s.name]) playerData[s.name].score = s.score; });
       renderPlayers();
@@ -799,9 +916,12 @@ function handleMsg(msg) {
       const frows = msg.scores.map((s, i) =>
         `<div class="score-row"><span>${["🥇","🥈","🥉"][i]||"  "} ${esc(s.name)}</span><span>${s.score} pts</span></div>`
       ).join("");
+      const playAgainBtn = isHost
+        ? `<button class="btn btn-teal" style="width:100%;font-size:18px" onclick="restartGame()">Play Again!</button>`
+        : `<div style="font-size:13px;opacity:.6;margin-top:4px">Waiting for host to restart…</div>`;
       showOverlay("🏆 Game Over!", `
         <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px">${frows}</div>
-        <button class="btn btn-teal" style="width:100%;font-size:18px" onclick="restartGame()">Play Again!</button>
+        ${playAgainBtn}
       `);
       break;
   }
@@ -827,14 +947,72 @@ function restartGame() {
 }
 
 // ── Lobby events ──────────────────────────────────────────────────
-joinBtn.addEventListener("click", () => {
+createBtn.addEventListener("click", () => {
   const name = nameInput.value.trim() || "Player";
-  const room = roomInput.value.trim() || "default";
+  // Generate a random room code for the creator
+  const room = Math.random().toString(36).slice(2,8).toUpperCase();
+  // Pre-apply settings
+  const rounds = parseInt(settingRoundsL.value);
+  const time = parseInt(settingTimeL.value);
+  // We send join first, then updateSettings after join is confirmed
+  window._pendingSettings = { rounds, time };
   connect(name, room);
 });
-nameInput.addEventListener("keydown", e => { if (e.key==="Enter") joinBtn.click(); });
-roomInput.addEventListener("keydown", e => { if (e.key==="Enter") joinBtn.click(); });
-startBtn.addEventListener("click",   () => { ws && ws.send(JSON.stringify({ type:"startGame" })); });
+
+joinBtn.addEventListener("click", () => {
+  const name = nameInput.value.trim() || "Player";
+  const room = roomInput.value.trim();
+  if (!room) { alert("Please enter a room code!"); return; }
+  connect(name, room.toUpperCase());
+});
+
+nameInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    if (lobbyMode === "create") createBtn.click();
+    else joinBtn.click();
+  }
+});
+roomInput.addEventListener("keydown", e => { if (e.key === "Enter") joinBtn.click(); });
+
+// Override connect to apply pending settings after join
+const _origConnect = connect;
+
+// Patch handleMsg to apply pending settings after "joined"
+const _origHandleMsg = handleMsg;
+
+// Apply creator's pre-selected settings right after joining
+function applyPendingSettings() {
+  if (window._pendingSettings && isHost && ws) {
+    ws.send(JSON.stringify({
+      type: "updateSettings",
+      roundsTotal: window._pendingSettings.rounds,
+      roundTime: window._pendingSettings.time,
+    }));
+    window._pendingSettings = null;
+  }
+}
+
+// Patch ws message handler to call applyPendingSettings after "joined"
+const origWsOnMessage = null;
+function patchedHandleMsg(msg) {
+  handleMsg(msg);
+  if (msg.type === "joined" && isHost) {
+    applyPendingSettings();
+  }
+}
+
+// Re-assign the ws message handler to use patched version
+function connect(name, room) {
+  ws = new WebSocket(WS_URL);
+  ws.onopen    = () => ws.send(JSON.stringify({ type:"join", name, room }));
+  ws.onmessage = e => patchedHandleMsg(JSON.parse(e.data));
+  ws.onclose   = () => addChat("⚠️ Disconnected.", "system");
+}
+
+startBtn.addEventListener("click", () => {
+  if (!isHost) return;
+  ws && ws.send(JSON.stringify({ type:"startGame" }));
+});
 </script>
 </body>
 </html>

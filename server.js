@@ -24,13 +24,36 @@ const WORD_LIST = [
   "astronaut","pyramid","caterpillar","mermaid","carousel","pancake","igloo",
   "lantern","hedgehog","teapot","windmill","parrot","crab","badminton","cloud",
   "detective","scorpion","avocado","diamond","kangaroo","firework","wizard",
-  "dinosaur","spaceship","octopus","tornado","volcano","balloon","camera",
-  "skateboard","trophy","microscope","sailboat","chessboard","lighthouse",
-  "parachute","lollipop","trampoline","suitcase","thermometer","accordion"
+  "dinosaur","spaceship","octopus","balloon","camera","skateboard","trophy",
+  "microscope","sailboat","chessboard","parachute","lollipop","trampoline",
+  "suitcase","thermometer","accordion","firefly","raccoon","hammock","sombrero",
+  "boomerang","escalator","pretzel","squid","flamingo","cactus","croissant",
+  "hammock","quicksand","beekeeper","stalactite","trident","yeti","zeppelin",
+  "abacus","bonsai","centaur","dumbbell","eclipse","ferris wheel","gondola",
+  "hourglass","igloo","javelin","kite","labyrinth","magnet","nebula","origami",
+  "pinwheel","quill","sundial","tapestry","ukulele","vortex","wombat","xylophone",
+  "yoyo","zeppelin","amphitheater","blimp","chimney","dagger","easel","faucet",
+  "gargoyle","hammock","icicle","joystick","keyhole","lasso","monocle","noodle",
+  "overalls","plunger","quicksand","rocketship","seashell","toadstool","unicycle",
+  "viking","walrus","xray","yoga","zipline","anvil","broccoli","clover","donut",
+  "eclipse","fern","gloves","hammock","inbox","juggler","knitting","llama",
+  "mushroom","narwhal","otter","peacock","queen","radish","sphinx","toucan",
+  "universe","vampire","waffle","xenon","yak","zombie","alligator","banjo",
+  "catfish","dartboard","eggplant","fossil","gorilla","hummingbird","iron",
+  "jaguar","koala","lobster","mammoth","nightowl","obelisk","platypus","quartz",
+  "reindeer","salamander","tarantula","umbrella","vulture","wolverine","xerox",
+  "yellowstone","zorro","anchor","breadstick","cockpit","dungeon","elevator",
+  "frisbee","glider","hippo","inkwell","jukebox","kazoo","lemon","mango",
+  "nunchucks","ostrich","panda","raccoon","stethoscope","tuba","ursa","velvet",
+  "watermelon","xylophone","yarn","zucchini"
 ];
 
-function pick(arr, n = 3) {
-  const copy = [...arr].sort(() => Math.random() - 0.5);
+// Track used words per room to avoid repeats
+function pickWords(usedWords, n = 3) {
+  const available = WORD_LIST.filter(w => !usedWords.has(w));
+  // If we've exhausted the list, reset
+  const pool = available.length >= n ? available : WORD_LIST;
+  const copy = [...pool].sort(() => Math.random() - 0.5);
   return copy.slice(0, n);
 }
 
@@ -39,8 +62,10 @@ const rooms = new Map();
 function makeRoom() {
   return {
     players: [],
+    // drawingIdx tracks whose turn it is within the current round
     drawingIdx: 0,
-    round: 0,
+    // round = full round number (increments after every player has drawn once)
+    round: 1,
     word: null,
     phase: "lobby",
     timer: null,
@@ -48,10 +73,11 @@ function makeRoom() {
     strokes: [],
     wordChoices: [],
     guessedIds: new Set(),
+    usedWords: new Set(),
     // Configurable settings
     roundTime: DEFAULT_ROUND_TIME,
     roundsTotal: DEFAULT_ROUNDS_TOTAL,
-    host: null, // id of room creator
+    host: null,
   };
 }
 
@@ -75,25 +101,24 @@ function startChoosing(room) {
   room.strokes = [];
   room.guessedIds = new Set();
   const drawer = room.players[room.drawingIdx];
-  room.wordChoices = pick(WORD_LIST);
+  room.wordChoices = pickWords(room.usedWords);
 
-  // Send chooseWord ONLY to drawer
+  // Tell guessers to wait
+  broadcast(room, { type: "phase", phase: "choosingWait", drawer: drawer.name }, drawer.id);
+  // Tell drawer to choose
+  send(drawer.ws, { type: "phase", phase: "choosing", drawer: drawer.name });
   send(drawer.ws, { type: "chooseWord", words: room.wordChoices });
 
-  // Broadcast to everyone (including drawer) for phase display
-  broadcast(room, { type: "phase", phase: "choosingWait", drawer: drawer.name });
-  // Tell drawer their specific phase (overwrites the above for them)
-  send(drawer.ws, { type: "phase", phase: "choosing", drawer: drawer.name });
-
-  // Auto-pick after 12s if drawer doesn't respond
+  // Auto-pick after 15s if drawer doesn't respond
   room.timer = setTimeout(() => {
     if (room.phase === "choosing") chooseWord(room, room.wordChoices[0]);
-  }, 12000);
+  }, 15000);
 }
 
 function chooseWord(room, word) {
   clearTimer(room);
   room.word = word;
+  room.usedWords.add(word);
   room.phase = "drawing";
   const drawer = room.players[room.drawingIdx];
 
@@ -120,17 +145,38 @@ function endRound(room, allGuessed) {
   room.phase = "roundEnd";
   const scores = room.players.map(p => ({ name: p.name, score: p.score }))
     .sort((a, b) => b.score - a.score);
-  broadcast(room, { type: "roundEnd", word: room.word, scores, allGuessed });
+
+  broadcast(room, {
+    type: "roundEnd",
+    word: room.word,
+    scores,
+    allGuessed,
+    round: room.round,
+    roundsTotal: room.roundsTotal,
+  });
+
   setTimeout(() => nextTurn(room), 4000);
 }
 
 function nextTurn(room) {
   const total = room.players.length;
-  room.drawingIdx = (room.drawingIdx + 1) % total;
-  if (room.drawingIdx === 0) room.round++;
-  if (room.round >= room.roundsTotal) {
+  room.drawingIdx++;
+
+  // After all players have drawn once, it's a new full round
+  if (room.drawingIdx >= total) {
+    room.drawingIdx = 0;
+    room.round++;
+  }
+
+  if (room.round > room.roundsTotal) {
     endGame(room);
   } else {
+    // Broadcast current round info before starting choosing
+    broadcast(room, {
+      type: "roundInfo",
+      round: room.round,
+      roundsTotal: room.roundsTotal,
+    });
     startChoosing(room);
   }
 }
@@ -145,7 +191,7 @@ function endGame(room) {
 
 function handleGuess(room, player, text) {
   if (room.phase !== "drawing") return;
-  if (player.id === room.players[room.drawingIdx].id) return;
+  if (player.id === room.players[room.drawingIdx].id) return; // drawer can't guess
   if (room.guessedIds.has(player.id)) return;
 
   const guess = text.trim().toLowerCase();
@@ -168,8 +214,18 @@ function handleGuess(room, player, text) {
     const guessers = room.players.filter(p => p.id !== room.players[room.drawingIdx].id);
     if (room.guessedIds.size >= guessers.length) endRound(room, true);
   } else {
+    // Wrong guess — show to everyone as chat
     broadcast(room, { type: "chat", name: player.name, text, isGuess: true });
   }
+}
+
+// ── Fill sync ────────────────────────────────────────────────────
+// Store fills in strokes as a special object {fill: true, x, y, c}
+function handleFill(room, player, data) {
+  if (room.phase !== "drawing") return;
+  if (player.id !== room.players[room.drawingIdx].id) return;
+  room.strokes.push({ fill: true, x: data.x, y: data.y, c: data.c });
+  broadcast(room, { type: "fill", data }, player.id);
 }
 
 const wss = new WebSocketServer({ server: httpServer });
@@ -186,6 +242,7 @@ wss.on("connection", (ws) => {
       playerId = Date.now() + Math.random().toString(36).slice(2);
       const name = (msg.name || "Player").slice(0, 16);
 
+      const isNewRoom = !rooms.has(roomId);
       if (!rooms.has(roomId)) rooms.set(roomId, makeRoom());
       const room = rooms.get(roomId);
 
@@ -193,7 +250,7 @@ wss.on("connection", (ws) => {
         send(ws, { type: "error", text: "Game already in progress." }); return;
       }
 
-      // First player is host
+      // First player is host/creator
       if (room.players.length === 0) room.host = playerId;
 
       const player = { ws, id: playerId, name, score: 0 };
@@ -206,6 +263,7 @@ wss.on("connection", (ws) => {
         roomId,
         players: room.players.map(p => p.name),
         isHost: room.host === playerId,
+        isNewRoom,
         settings: { roundTime: room.roundTime, roundsTotal: room.roundsTotal },
       });
       broadcast(room, { type: "playerJoined", name, players: room.players.map(p => p.name) }, playerId);
@@ -219,7 +277,6 @@ wss.on("connection", (ws) => {
 
     switch (msg.type) {
       case "updateSettings":
-        // Only host can change settings
         if (room.host !== playerId) return;
         if (room.phase !== "lobby" && room.phase !== "gameEnd") return;
         if (msg.roundTime) room.roundTime = Math.max(20, Math.min(180, parseInt(msg.roundTime) || DEFAULT_ROUND_TIME));
@@ -232,10 +289,12 @@ wss.on("connection", (ws) => {
         break;
 
       case "startGame":
+        if (room.host !== playerId) { send(ws, { type: "error", text: "Only the host can start the game." }); return; }
         if (room.players.length < 2) { send(ws, { type: "error", text: "Need at least 2 players." }); return; }
         if (room.phase !== "lobby" && room.phase !== "gameEnd") return;
-        room.round = 0;
+        room.round = 1;
         room.drawingIdx = 0;
+        room.usedWords = new Set();
         room.players.forEach(p => p.score = 0);
         broadcast(room, {
           type: "gameStarting",
@@ -261,6 +320,10 @@ wss.on("connection", (ws) => {
         broadcast(room, { type: "draw", data: msg.data }, playerId);
         break;
 
+      case "fill":
+        handleFill(room, player, msg.data);
+        break;
+
       case "clearCanvas":
         if (player.id !== room.players[room.drawingIdx].id) return;
         room.strokes = [];
@@ -269,18 +332,16 @@ wss.on("connection", (ws) => {
 
       case "undoCanvas":
         if (player.id !== room.players[room.drawingIdx].id) return;
-        // Pop last stroke group (strokes since last mousedown)
         const lastDown = room.strokes.lastIndexOf(null);
         if (lastDown === -1) room.strokes = [];
         else room.strokes = room.strokes.slice(0, lastDown);
-        // Broadcast full redraw
         broadcast(room, { type: "redrawStrokes", strokes: room.strokes }, playerId);
         break;
 
       case "mouseDown":
         if (player.id !== room.players[room.drawingIdx].id) return;
         if (room.phase !== "drawing") return;
-        room.strokes.push(null); // null = stroke group separator
+        room.strokes.push(null);
         break;
 
       case "guess":
@@ -288,7 +349,13 @@ wss.on("connection", (ws) => {
         break;
 
       case "chat":
+        // Anyone can send a chat message (drawer included)
         broadcast(room, { type: "chat", name: player.name, text: msg.text });
+        break;
+
+      case "drawerChat":
+        // Drawer sends a chat (not a guess attempt)
+        broadcast(room, { type: "chat", name: player.name, text: msg.text, isDrawer: true });
         break;
 
       case "requestStrokes":
@@ -305,7 +372,6 @@ wss.on("connection", (ws) => {
     const name = room.players[idx].name;
     room.players.splice(idx, 1);
 
-    // Transfer host if host left
     if (room.host === playerId && room.players.length > 0) {
       room.host = room.players[0].id;
       send(room.players[0].ws, { type: "youAreHost" });
