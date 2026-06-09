@@ -92,8 +92,6 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
 ════════════════════════════════ */
 @media(min-width:601px){
   #mainRow{flex:1;display:flex;overflow:hidden;min-height:0}
-
-  /* player panel */
   #playerPanel{
     width:140px;flex-shrink:0;border-right:var(--border);background:var(--cream);
     overflow-y:auto;padding:8px 6px;display:flex;flex-direction:column;gap:6px;
@@ -108,12 +106,8 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
   .player-name{font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .player-score{font-size:11px;font-weight:700;color:var(--accent)}
   .drawing-badge{position:absolute;top:-8px;right:-4px;font-size:15px}
-
-  /* canvas area */
   #canvasWrap{flex:1;position:relative;background:#fff;overflow:hidden;min-width:0}
   #drawCanvas{display:block;touch-action:none;cursor:crosshair}
-
-  /* toolbar (desktop: floating pill at bottom) */
   #toolbar{
     position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
     display:flex;align-items:center;gap:6px;background:var(--ink);
@@ -121,39 +115,30 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
     white-space:nowrap;
   }
   #toolbar.hidden{display:none}
-
-  /* chat panel */
   #chatPanel{
     width:200px;flex-shrink:0;display:flex;flex-direction:column;
     border-left:var(--border);background:var(--cream);overflow:hidden;
   }
-
-  /* Mobile-only elements hidden on desktop */
   #mobilePlayerStrip{display:none}
   #mobileChatToggle{display:none}
   #mobileChatDrawer{display:none}
   #mobileToolbar{display:none}
   #mobileBottomBar{display:none}
+  #mobileChatFeed{display:none}
 }
 
 /* ════════════════════════════════
    MOBILE layout (≤ 600px)
 ════════════════════════════════ */
 @media(max-width:600px){
-  /* Hide desktop-only panels */
   #playerPanel{display:none}
   #chatPanel{display:none}
-  /* mainRow: just canvas */
   #mainRow{flex:1;display:flex;overflow:hidden;min-height:0;position:relative}
-
-  /* canvas fills everything */
   #canvasWrap{flex:1;position:relative;background:#fff;overflow:hidden}
   #drawCanvas{display:block;touch-action:none;cursor:crosshair}
-
-  /* Desktop floating toolbar hidden */
   #toolbar{display:none !important}
 
-  /* ── Mobile player strip (horizontal row below topBar) ── */
+  /* ── Mobile player strip ── */
   #mobilePlayerStrip{
     flex-shrink:0;display:flex;gap:6px;padding:5px 8px;
     background:var(--cream);border-bottom:2px solid var(--ink);
@@ -171,13 +156,13 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
   .m-player-chip .m-score{font-size:10px;color:var(--accent);font-weight:700}
   .m-player-chip .m-badge{font-size:11px}
 
-  /* ── Mobile bottom bar: toolbar + chat toggle ── */
+  /* ── Mobile bottom bar ── */
   #mobileBottomBar{
     flex-shrink:0;display:flex;flex-direction:column;
     background:var(--ink);border-top:2px solid rgba(255,255,255,.15);
   }
 
-  /* Mobile toolbar: scrollable row of tools */
+  /* Mobile toolbar */
   #mobileToolbar{
     display:flex;align-items:center;gap:6px;padding:7px 10px;
     overflow-x:auto;-webkit-overflow-scrolling:touch;
@@ -200,13 +185,13 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
     line-height:1;padding:4px 6px;border-radius:6px;opacity:.8;flex-shrink:0;
   }
   .tool-btn.active{background:rgba(255,255,255,.25);outline:2px solid #fff;opacity:1}
-  #clearBtn{
+  #clearBtnM{
     background:var(--accent);border:none;color:#fff;font-family:'Bangers',cursive;
     font-size:13px;letter-spacing:1px;padding:4px 10px;border-radius:16px;
     cursor:pointer;flex-shrink:0;white-space:nowrap;
   }
 
-  /* Mobile chat toggle button row */
+  /* ── Mobile guess input row (no expand button) ── */
   #mobileChatToggle{
     display:flex;align-items:center;gap:0;border-top:1px solid rgba(255,255,255,.1);
   }
@@ -219,31 +204,49 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
     border-left:2px solid var(--ink);font-family:'Bangers',cursive;font-size:17px;
     cursor:pointer;height:100%;white-space:nowrap;
   }
-  #mobileChatExpand{
-    padding:0 12px;background:none;border:none;color:#fff;font-size:18px;
-    cursor:pointer;flex-shrink:0;opacity:.7;
+
+  /* ── Mobile floating chat feed on canvas ── */
+  #mobileChatFeed{
+    position:absolute;
+    bottom:10px;
+    left:8px;
+    right:8px;
+    max-height:42%;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    gap:5px;
+    pointer-events:none;
+    z-index:6;
+    overflow:hidden;
+  }
+  .feed-msg{
+    display:inline-block;
+    align-self:flex-start;
+    background:rgba(26,26,46,0.75);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    padding:6px 11px;
+    border-radius:18px;
+    line-height:1.4;
+    word-break:break-word;
+    max-width:92%;
+    animation:feedIn .18s ease;
+    pointer-events:none;
+    transition:opacity 0.5s;
+  }
+  .feed-msg.correct{background:rgba(40,167,69,0.88);color:#fff;}
+  .feed-msg.system{background:rgba(69,123,157,0.8);color:#fff;font-style:italic;}
+  .feed-msg.self{background:rgba(69,123,157,0.75);color:#fff;}
+  .feed-msg strong{font-weight:800;}
+  @keyframes feedIn{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
   }
 
-  /* Mobile chat drawer: slides up */
-  #mobileChatDrawer{
-    position:fixed;bottom:0;left:0;right:0;
-    background:var(--cream);border-top:var(--border);
-    border-radius:16px 16px 0 0;
-    z-index:20;
-    transform:translateY(100%);
-    transition:transform .25s ease;
-    max-height:55vh;display:flex;flex-direction:column;
-  }
-  #mobileChatDrawer.open{transform:translateY(0)}
-  #drawerHeader{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:10px 14px;border-bottom:2px solid var(--ink);flex-shrink:0;
-  }
-  #drawerHeader span{font-family:'Bangers',cursive;font-size:18px;letter-spacing:1px}
-  #drawerClose{background:none;border:none;font-size:20px;cursor:pointer;padding:0 4px}
-  #drawerMessages{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:4px}
-  #drawerMessages::-webkit-scrollbar{width:3px}
-  #drawerMessages::-webkit-scrollbar-thumb{background:var(--ink);border-radius:3px}
+  /* hide old drawer on mobile — no longer needed */
+  #mobileChatDrawer{display:none !important}
 
   /* overlay adjust for mobile */
   #overlayBox{padding:20px 18px;max-width:96vw}
@@ -255,7 +258,6 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
 /* ════════════════════════════════
    Shared (both breakpoints)
 ════════════════════════════════ */
-/* Desktop toolbar colors/tools (reused classes) */
 @media(min-width:601px){
   .color-btn{
     width:22px;height:22px;border-radius:50%;border:2px solid transparent;
@@ -276,7 +278,7 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
   #clearBtn:hover{background:#c1121f}
 }
 
-/* overlay (shared) */
+/* overlay */
 #overlay{position:absolute;inset:0;background:rgba(26,26,46,.82);
   display:flex;align-items:center;justify-content:center;z-index:10}
 #overlay.hidden{display:none}
@@ -330,10 +332,8 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
       <button class="lobby-tab active" id="tabCreate" onclick="setLobbyMode('create')">✏️ Create Room</button>
       <button class="lobby-tab" id="tabJoin" onclick="setLobbyMode('join')">🚪 Join Room</button>
     </div>
-
     <label>Your Name</label>
     <input id="nameInput" placeholder="e.g. Picasso" maxlength="16"/>
-
     <div id="createSection">
       <div style="display:flex;flex-direction:column;gap:12px">
         <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px">⚙️ Game Settings</div>
@@ -363,7 +363,6 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
         <button class="btn btn-primary" id="createBtn">Create Room →</button>
       </div>
     </div>
-
     <div id="joinSection" style="display:none;flex-direction:column;gap:12px">
       <label>Room Code</label>
       <input id="roomInput" placeholder="Enter room code" maxlength="20"/>
@@ -416,7 +415,7 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
   <!-- Mobile: horizontal player strip -->
   <div id="mobilePlayerStrip"></div>
 
-  <!-- Main row: player panel + canvas + chat (desktop) / canvas only (mobile) -->
+  <!-- Main row -->
   <div id="mainRow">
     <!-- Desktop player panel -->
     <div id="playerPanel"></div>
@@ -425,6 +424,9 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
     <div id="canvasWrap">
       <canvas id="drawCanvas"></canvas>
       <div id="choosingBanner"></div>
+
+      <!-- MOBILE: floating chat feed — messages appear directly on canvas -->
+      <div id="mobileChatFeed"></div>
 
       <!-- Desktop toolbar (floating pill) -->
       <div id="toolbar" class="hidden">
@@ -469,9 +471,8 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
     </div>
   </div>
 
-  <!-- Mobile bottom bar: toolbar + chat input -->
+  <!-- Mobile bottom bar: toolbar + guess input -->
   <div id="mobileBottomBar">
-    <!-- Mobile toolbar row -->
     <div id="mobileToolbar" class="hidden">
       <div class="color-btn active" data-color="#1a1a2e" style="background:#1a1a2e"></div>
       <div class="color-btn" data-color="#e63946" style="background:#e63946"></div>
@@ -494,20 +495,16 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
       <div class="tool-sep"></div>
       <button id="clearBtnM">CLEAR</button>
     </div>
-    <!-- Mobile chat toggle -->
+    <!-- Mobile guess input (no expand button — chat is on canvas now) -->
     <div id="mobileChatToggle">
       <input id="mobileChatInput" placeholder="Type guess…" maxlength="80" autocomplete="off"/>
-      <button id="mobileChatExpand" title="Show chat history">💬</button>
       <button id="mobileSendBtn">GO</button>
     </div>
   </div>
 
-  <!-- Mobile chat drawer (slides up) -->
-  <div id="mobileChatDrawer">
-    <div id="drawerHeader">
-      <span>💬 Chat</span>
-      <button id="drawerClose">✕</button>
-    </div>
+  <!-- Mobile chat drawer hidden — kept for desktop drawerMessages target -->
+  <div id="mobileChatDrawer" style="display:none">
+    <div id="drawerHeader"><span>💬 Chat</span><button id="drawerClose">✕</button></div>
     <div id="drawerMessages"></div>
   </div>
 </div>
@@ -541,18 +538,17 @@ const settingRoundsL=$("settingRoundsLobby"), settingTimeL=$("settingTimeLobby")
 const displayRoomCode=$("displayRoomCode");
 const playerPanel=$("playerPanel");
 const wordDisplay=$("wordDisplay"), timerEl=$("timer"), roundBadge=$("roundBadge");
-// Desktop toolbar
 const toolbar=$("toolbar"), eraserBtn=$("eraserBtn"), fillBtn=$("fillBtn"), undoBtn=$("undoBtn"), clearBtn=$("clearBtn");
-// Mobile toolbar
 const mobileToolbar=$("mobileToolbar"), eraserBtnM=$("eraserBtnM"), fillBtnM=$("fillBtnM"), undoBtnM=$("undoBtnM"), clearBtnM=$("clearBtnM");
 const mobilePlayerStrip=$("mobilePlayerStrip");
 const mobileChatInput=$("mobileChatInput"), mobileSendBtn=$("mobileSendBtn");
-const mobileChatExpand=$("mobileChatExpand"), mobileChatDrawer=$("mobileChatDrawer");
-const drawerClose=$("drawerClose"), drawerMessages=$("drawerMessages");
+const drawerMessages=$("drawerMessages");
 const overlay=$("overlay"), overlayTitle=$("overlayTitle"), overlayBody=$("overlayBody");
 const chatMessages=$("chatMessages"), chatInput=$("chatInput"), sendBtn=$("sendBtn");
 const canvas=$("drawCanvas"), ctx=canvas.getContext("2d");
 const canvasWrap=$("canvasWrap"), choosingBanner=$("choosingBanner");
+const mobileChatFeed=$("mobileChatFeed");
+const FEED_MAX=6;
 
 // ── Lobby mode ─────────────────────────────────────────────────
 window.setLobbyMode=function(mode){
@@ -568,14 +564,13 @@ function resizeCanvas(){
   const r=canvasWrap.getBoundingClientRect();
   canvas.width=r.width; canvas.height=r.height;
   ctx.lineCap="round"; ctx.lineJoin="round";
-  // redraw from normalized stroke history so everything scales correctly
   redrawAll();
 }
 window.addEventListener("resize",resizeCanvas);
 
 // ── Draw helpers ───────────────────────────────────────────────
 function drawSeg(seg){
-  // coords are stored normalized (0–1); scale to local canvas size
+  // coords stored as 0–1 normalized; scale to this client's canvas
   const x1=seg.x1*canvas.width, y1=seg.y1*canvas.height;
   const x2=seg.x2*canvas.width, y2=seg.y2*canvas.height;
   ctx.strokeStyle=seg.c; ctx.lineWidth=seg.s;
@@ -595,7 +590,7 @@ function colorsMatch(a,b,t=30){
   return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2])+Math.abs(a[3]-b[3])<t;
 }
 function floodFill(startX,startY,fillColor){
-  // coords arrive normalized; scale to local canvas
+  // coords arrive normalized 0–1; scale to local canvas
   startX=startX*canvas.width; startY=startY*canvas.height;
   const d=ctx.getImageData(0,0,canvas.width,canvas.height),data=d.data;
   const w=canvas.width,h=canvas.height;
@@ -627,15 +622,11 @@ function onPointerDown(e){
   if(myRole!=="drawer")return;
   if(fillMode){
     const[x,y]=getPos(e);
-    
-// AFTER:
+    // send normalized coords
     floodFill(x/canvas.width, y/canvas.height, currentColor);
-    ws&&ws.send(JSON.stringify({type:"fill",data:{
-      x:x/canvas.width, y:y/canvas.height, c:currentColor
-    }}));
+    ws&&ws.send(JSON.stringify({type:"fill",data:{x:x/canvas.width,y:y/canvas.height,c:currentColor}}));
     return;
   }
- // AFTER:
   drawing=true;
   const[px,py]=getPos(e);
   lastX=px; lastY=py;
@@ -646,7 +637,7 @@ function onPointerMove(e){
   if(!drawing||myRole!=="drawer")return;
   const[x,y]=getPos(e);
   const color=eraserMode?"#ffffff":currentColor;
-  // normalize to 0–1 so all clients scale to their own canvas size
+  // normalize coords to 0–1 so every client scales to their own canvas size
   const seg={
     x1:lastX/canvas.width, y1:lastY/canvas.height,
     x2:x/canvas.width,     y2:y/canvas.height,
@@ -667,15 +658,12 @@ canvas.addEventListener("touchstart",e=>{e.preventDefault();onPointerDown(e);},{
 canvas.addEventListener("touchmove",e=>{e.preventDefault();onPointerMove(e);},{passive:false});
 canvas.addEventListener("touchend",e=>{e.preventDefault();onPointerUp();},{passive:false});
 
-// ── Toolbar: wire up both desktop + mobile versions ────────────
+// ── Toolbar ────────────────────────────────────────────────────
 function setupToolbar(colorBtns,sizeBtns,eBtn,fBtn,uBtn,cBtn){
   colorBtns.forEach(btn=>{
     btn.addEventListener("click",()=>{
-      // Sync both toolbars' active states
       document.querySelectorAll(".color-btn").forEach(b=>b.classList.remove("active"));
-      // Set active on matching color in both bars
-      document.querySelectorAll(`.color-btn[data-color="${btn.dataset.color}"]`)
-        .forEach(b=>b.classList.add("active"));
+      document.querySelectorAll(`.color-btn[data-color="${btn.dataset.color}"]`).forEach(b=>b.classList.add("active"));
       currentColor=btn.dataset.color;
       eraserMode=false;
       document.querySelectorAll("#eraserBtn,#eraserBtnM").forEach(b=>b.classList.remove("active"));
@@ -733,9 +721,9 @@ function showDrawingTools(show){
   mobileToolbar.classList.toggle("hidden",!show);
 }
 
-// ── Chat (shared logic) ────────────────────────────────────────
+// ── Chat ───────────────────────────────────────────────────────
 function addChat(html,cls=""){
-  // Add to both desktop and mobile chat
+  // Desktop chat panel
   [chatMessages,drawerMessages].forEach(container=>{
     const div=document.createElement("div");
     div.className="chat-msg "+cls;
@@ -743,6 +731,27 @@ function addChat(html,cls=""){
     container.appendChild(div);
     container.scrollTop=container.scrollHeight;
   });
+
+  // Mobile: show as floating bubble on canvas
+  if(isMobile()){
+    const bubble=document.createElement("div");
+    // map chat classes to feed bubble classes
+    const feedCls=cls==="correct"?"correct":cls==="system"?"system":cls.includes("self")?"self":"";
+    bubble.className="feed-msg"+(feedCls?" "+feedCls:"");
+    bubble.innerHTML=html;
+    mobileChatFeed.appendChild(bubble);
+    // keep only last FEED_MAX bubbles
+    while(mobileChatFeed.children.length>FEED_MAX){
+      mobileChatFeed.removeChild(mobileChatFeed.firstChild);
+    }
+    // fade out after 6s
+    const t=setTimeout(()=>{
+      bubble.style.opacity="0";
+      setTimeout(()=>{if(bubble.parentNode)bubble.remove();},500);
+    },6000);
+    // clean up timer if bubble removed early
+    bubble._fadeTimer=t;
+  }
 }
 
 function sendGuessText(text){
@@ -763,10 +772,6 @@ chatInput.addEventListener("keydown",e=>{if(e.key==="Enter"){const t=chatInput.v
 mobileSendBtn.addEventListener("click",()=>{const t=mobileChatInput.value.trim();mobileChatInput.value="";sendGuessText(t);});
 mobileChatInput.addEventListener("keydown",e=>{if(e.key==="Enter"){const t=mobileChatInput.value.trim();mobileChatInput.value="";sendGuessText(t);}});
 
-// Mobile chat drawer toggle
-mobileChatExpand.addEventListener("click",()=>mobileChatDrawer.classList.add("open"));
-drawerClose.addEventListener("click",()=>mobileChatDrawer.classList.remove("open"));
-
 function setChatDisabled(disabled,placeholder){
   chatInput.disabled=disabled; chatInput.placeholder=placeholder;
   mobileChatInput.disabled=disabled; mobileChatInput.placeholder=placeholder;
@@ -774,19 +779,15 @@ function setChatDisabled(disabled,placeholder){
 
 // ── Players ────────────────────────────────────────────────────
 function renderPlayers(){
-  // Desktop panel
   playerPanel.innerHTML="";
-  // Mobile strip
   mobilePlayerStrip.innerHTML="";
   Object.entries(playerData).forEach(([name,data])=>{
-    // Desktop card
     const d=document.createElement("div");
     d.className="player-card"+(data.drawing?" drawing":"")+(data.guessed?" guessed":"");
     d.innerHTML=`${data.drawing?'<span class="drawing-badge">✏️</span>':""}
       <div class="player-name">${esc(name)}</div>
       <div class="player-score">${data.score} pts</div>`;
     playerPanel.appendChild(d);
-    // Mobile chip
     const chip=document.createElement("div");
     chip.className="m-player-chip"+(data.drawing?" drawing":"")+(data.guessed?" guessed":"");
     chip.innerHTML=`${data.drawing?'<span class="m-badge">✏️</span>':""}
@@ -857,7 +858,8 @@ function handleMsg(msg){
         hostSettings.style.display="none"; nonHostNote.style.display="";
         startBtn.disabled=true;
       }
-      hostPlayerName=msg.players[0];
+      // use server-provided host name if available
+      hostPlayerName=msg.host||msg.players[0];
       updateLobbyList(msg.players,hostPlayerName);
       addChat(`✅ Joined room <strong>${esc(msg.roomId)}</strong>`,"system");
       break;
@@ -869,12 +871,15 @@ function handleMsg(msg){
       break;
 
     case "playerJoined":
+      // update host name from server so crown is always correct
+      if(msg.host) hostPlayerName=msg.host;
       updateLobbyList(msg.players,hostPlayerName);
       addChat(`👋 <strong>${esc(msg.name)}</strong> joined!`,"system");
       break;
 
     case "playerLeft":
       if(msg.players){
+        if(msg.host) hostPlayerName=msg.host;
         updateLobbyList(msg.players,hostPlayerName);
         const ns=new Set(msg.players);
         Object.keys(playerData).forEach(n=>{if(!ns.has(n))delete playerData[n];});
@@ -961,12 +966,20 @@ function handleMsg(msg){
       timerEl.classList.toggle("urgent",msg.t<=10);
       break;
 
+    case "mouseDown":
+      // guesser side: start a new stroke group to match drawer's history
+      if(myRole!=="drawer"){
+        strokeHistory.push([]);
+      }
+      break;
+
     case "draw":
       drawSeg(msg.data);
       if(myRole!=="drawer"){
-        if(!strokeHistory.length)strokeHistory.push([]);
-        const last=strokeHistory[strokeHistory.length-1];
-        if(Array.isArray(last))last.push(msg.data);
+        if(!strokeHistory.length||!Array.isArray(strokeHistory[strokeHistory.length-1])){
+          strokeHistory.push([]);
+        }
+        strokeHistory[strokeHistory.length-1].push(msg.data);
       }
       break;
 
