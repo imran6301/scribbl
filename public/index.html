@@ -566,18 +566,21 @@ window.setLobbyMode=function(mode){
 // ── Canvas resize ──────────────────────────────────────────────
 function resizeCanvas(){
   const r=canvasWrap.getBoundingClientRect();
-  const snap=ctx.getImageData(0,0,canvas.width||1,canvas.height||1);
   canvas.width=r.width; canvas.height=r.height;
   ctx.lineCap="round"; ctx.lineJoin="round";
-  try{ctx.putImageData(snap,0,0);}catch(e){}
+  // redraw from normalized stroke history so everything scales correctly
+  redrawAll();
 }
 window.addEventListener("resize",resizeCanvas);
 
 // ── Draw helpers ───────────────────────────────────────────────
 function drawSeg(seg){
+  // coords are stored normalized (0–1); scale to local canvas size
+  const x1=seg.x1*canvas.width, y1=seg.y1*canvas.height;
+  const x2=seg.x2*canvas.width, y2=seg.y2*canvas.height;
   ctx.strokeStyle=seg.c; ctx.lineWidth=seg.s;
   ctx.lineCap="round"; ctx.lineJoin="round";
-  ctx.beginPath(); ctx.moveTo(seg.x1,seg.y1); ctx.lineTo(seg.x2,seg.y2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
 }
 function redrawAll(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -592,6 +595,8 @@ function colorsMatch(a,b,t=30){
   return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2])+Math.abs(a[3]-b[3])<t;
 }
 function floodFill(startX,startY,fillColor){
+  // coords arrive normalized; scale to local canvas
+  startX=startX*canvas.width; startY=startY*canvas.height;
   const d=ctx.getImageData(0,0,canvas.width,canvas.height),data=d.data;
   const w=canvas.width,h=canvas.height;
   const si=(Math.round(startY)*w+Math.round(startX))*4;
@@ -622,11 +627,18 @@ function onPointerDown(e){
   if(myRole!=="drawer")return;
   if(fillMode){
     const[x,y]=getPos(e);
-    floodFill(x,y,currentColor);
-    ws&&ws.send(JSON.stringify({type:"fill",data:{x,y,c:currentColor}}));
+    
+// AFTER:
+    floodFill(x/canvas.width, y/canvas.height, currentColor);
+    ws&&ws.send(JSON.stringify({type:"fill",data:{
+      x:x/canvas.width, y:y/canvas.height, c:currentColor
+    }}));
     return;
   }
-  drawing=true; [lastX,lastY]=getPos(e);
+ // AFTER:
+  drawing=true;
+  const[px,py]=getPos(e);
+  lastX=px; lastY=py;
   currentGroup=[]; strokeHistory.push(currentGroup);
   ws&&ws.send(JSON.stringify({type:"mouseDown"}));
 }
@@ -634,7 +646,12 @@ function onPointerMove(e){
   if(!drawing||myRole!=="drawer")return;
   const[x,y]=getPos(e);
   const color=eraserMode?"#ffffff":currentColor;
-  const seg={x1:lastX,y1:lastY,x2:x,y2:y,c:color,s:currentSize};
+  // normalize to 0–1 so all clients scale to their own canvas size
+  const seg={
+    x1:lastX/canvas.width, y1:lastY/canvas.height,
+    x2:x/canvas.width,     y2:y/canvas.height,
+    c:color, s:currentSize
+  };
   drawSeg(seg);
   currentGroup&&currentGroup.push(seg);
   ws&&ws.send(JSON.stringify({type:"draw",data:seg}));
