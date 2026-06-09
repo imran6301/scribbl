@@ -12,7 +12,6 @@ const httpServer = http.createServer((req, res) => {
   });
 });
 
-// ── Game state ───────────────────────────────────────────────────
 const DEFAULT_ROUND_TIME = 80;
 const DEFAULT_ROUNDS_TOTAL = 3;
 
@@ -48,10 +47,8 @@ const WORD_LIST = [
   "watermelon","xylophone","yarn","zucchini"
 ];
 
-// Track used words per room to avoid repeats
 function pickWords(usedWords, n = 3) {
   const available = WORD_LIST.filter(w => !usedWords.has(w));
-  // If we've exhausted the list, reset
   const pool = available.length >= n ? available : WORD_LIST;
   const copy = [...pool].sort(() => Math.random() - 0.5);
   return copy.slice(0, n);
@@ -62,9 +59,7 @@ const rooms = new Map();
 function makeRoom() {
   return {
     players: [],
-    // drawingIdx tracks whose turn it is within the current round
     drawingIdx: 0,
-    // round = full round number (increments after every player has drawn once)
     round: 1,
     word: null,
     phase: "lobby",
@@ -74,7 +69,6 @@ function makeRoom() {
     wordChoices: [],
     guessedIds: new Set(),
     usedWords: new Set(),
-    // Configurable settings
     roundTime: DEFAULT_ROUND_TIME,
     roundsTotal: DEFAULT_ROUNDS_TOTAL,
     host: null,
@@ -96,6 +90,10 @@ function clearTimer(room) {
   if (room.timer) { clearInterval(room.timer); clearTimeout(room.timer); room.timer = null; }
 }
 
+function getHostName(room) {
+  return room.players.find(p => p.id === room.host)?.name || null;
+}
+
 function startChoosing(room) {
   room.phase = "choosing";
   room.strokes = [];
@@ -103,13 +101,10 @@ function startChoosing(room) {
   const drawer = room.players[room.drawingIdx];
   room.wordChoices = pickWords(room.usedWords);
 
-  // Tell guessers to wait
   broadcast(room, { type: "phase", phase: "choosingWait", drawer: drawer.name }, drawer.id);
-  // Tell drawer to choose
   send(drawer.ws, { type: "phase", phase: "choosing", drawer: drawer.name });
   send(drawer.ws, { type: "chooseWord", words: room.wordChoices });
 
-  // Auto-pick after 15s if drawer doesn't respond
   room.timer = setTimeout(() => {
     if (room.phase === "choosing") chooseWord(room, room.wordChoices[0]);
   }, 15000);
@@ -145,53 +140,31 @@ function endRound(room, allGuessed) {
   room.phase = "roundEnd";
   const scores = room.players.map(p => ({ name: p.name, score: p.score }))
     .sort((a, b) => b.score - a.score);
-
-  broadcast(room, {
-    type: "roundEnd",
-    word: room.word,
-    scores,
-    allGuessed,
-    round: room.round,
-    roundsTotal: room.roundsTotal,
-  });
-
+  broadcast(room, { type: "roundEnd", word: room.word, scores, allGuessed, round: room.round, roundsTotal: room.roundsTotal });
   setTimeout(() => nextTurn(room), 4000);
 }
 
 function nextTurn(room) {
   const total = room.players.length;
   room.drawingIdx++;
-
-  // After all players have drawn once, it's a new full round
-  if (room.drawingIdx >= total) {
-    room.drawingIdx = 0;
-    room.round++;
-  }
-
+  if (room.drawingIdx >= total) { room.drawingIdx = 0; room.round++; }
   if (room.round > room.roundsTotal) {
     endGame(room);
   } else {
-    // Broadcast current round info before starting choosing
-    broadcast(room, {
-      type: "roundInfo",
-      round: room.round,
-      roundsTotal: room.roundsTotal,
-    });
+    broadcast(room, { type: "roundInfo", round: room.round, roundsTotal: room.roundsTotal });
     startChoosing(room);
   }
 }
 
 function endGame(room) {
   room.phase = "gameEnd";
-  const scores = room.players
-    .map(p => ({ name: p.name, score: p.score }))
-    .sort((a, b) => b.score - a.score);
+  const scores = room.players.map(p => ({ name: p.name, score: p.score })).sort((a, b) => b.score - a.score);
   broadcast(room, { type: "gameEnd", scores });
 }
 
 function handleGuess(room, player, text) {
   if (room.phase !== "drawing") return;
-  if (player.id === room.players[room.drawingIdx].id) return; // drawer can't guess
+  if (player.id === room.players[room.drawingIdx].id) return;
   if (room.guessedIds.has(player.id)) return;
 
   const guess = text.trim().toLowerCase();
@@ -199,28 +172,17 @@ function handleGuess(room, player, text) {
 
   if (correct) {
     const timeBonus = Math.floor(room.timerLeft * 0.5);
-    const pts = 100 + timeBonus;
-    player.score += pts;
+    player.score += 100 + timeBonus;
     room.players[room.drawingIdx].score += 25;
     room.guessedIds.add(player.id);
-
-    broadcast(room, {
-      type: "correctGuess",
-      name: player.name,
-      score: player.score,
-      drawerScore: room.players[room.drawingIdx].score,
-    });
-
+    broadcast(room, { type: "correctGuess", name: player.name, score: player.score, drawerScore: room.players[room.drawingIdx].score });
     const guessers = room.players.filter(p => p.id !== room.players[room.drawingIdx].id);
     if (room.guessedIds.size >= guessers.length) endRound(room, true);
   } else {
-    // Wrong guess — show to everyone as chat
     broadcast(room, { type: "chat", name: player.name, text, isGuess: true });
   }
 }
 
-// ── Fill sync ────────────────────────────────────────────────────
-// Store fills in strokes as a special object {fill: true, x, y, c}
 function handleFill(room, player, data) {
   if (room.phase !== "drawing") return;
   if (player.id !== room.players[room.drawingIdx].id) return;
@@ -250,12 +212,11 @@ wss.on("connection", (ws) => {
         send(ws, { type: "error", text: "Game already in progress." }); return;
       }
 
-      // First player is host/creator
       if (room.players.length === 0) room.host = playerId;
-
       const player = { ws, id: playerId, name, score: 0 };
       room.players.push(player);
 
+      // Tell the joiner their own confirmation + full current player list
       send(ws, {
         type: "joined",
         id: playerId,
@@ -265,8 +226,17 @@ wss.on("connection", (ws) => {
         isHost: room.host === playerId,
         isNewRoom,
         settings: { roundTime: room.roundTime, roundsTotal: room.roundsTotal },
+        // FIX: include host name so client can render crown correctly
+        host: getHostName(room),
       });
-      broadcast(room, { type: "playerJoined", name, players: room.players.map(p => p.name) }, playerId);
+
+      // FIX: broadcast playerJoined to all OTHER players with updated list + host name
+      broadcast(room, {
+        type: "playerJoined",
+        name,
+        players: room.players.map(p => p.name),
+        host: getHostName(room),
+      }, playerId);
       return;
     }
 
@@ -281,27 +251,16 @@ wss.on("connection", (ws) => {
         if (room.phase !== "lobby" && room.phase !== "gameEnd") return;
         if (msg.roundTime) room.roundTime = Math.max(20, Math.min(180, parseInt(msg.roundTime) || DEFAULT_ROUND_TIME));
         if (msg.roundsTotal) room.roundsTotal = Math.max(1, Math.min(10, parseInt(msg.roundsTotal) || DEFAULT_ROUNDS_TOTAL));
-        broadcast(room, {
-          type: "settingsUpdated",
-          roundTime: room.roundTime,
-          roundsTotal: room.roundsTotal,
-        });
+        broadcast(room, { type: "settingsUpdated", roundTime: room.roundTime, roundsTotal: room.roundsTotal });
         break;
 
       case "startGame":
         if (room.host !== playerId) { send(ws, { type: "error", text: "Only the host can start the game." }); return; }
         if (room.players.length < 2) { send(ws, { type: "error", text: "Need at least 2 players." }); return; }
         if (room.phase !== "lobby" && room.phase !== "gameEnd") return;
-        room.round = 1;
-        room.drawingIdx = 0;
-        room.usedWords = new Set();
+        room.round = 1; room.drawingIdx = 0; room.usedWords = new Set();
         room.players.forEach(p => p.score = 0);
-        broadcast(room, {
-          type: "gameStarting",
-          players: room.players.map(p => p.name),
-          roundsTotal: room.roundsTotal,
-          roundTime: room.roundTime,
-        });
+        broadcast(room, { type: "gameStarting", players: room.players.map(p => p.name), roundsTotal: room.roundsTotal, roundTime: room.roundTime });
         setTimeout(() => startChoosing(room), 1500);
         break;
 
@@ -342,6 +301,8 @@ wss.on("connection", (ws) => {
         if (player.id !== room.players[room.drawingIdx].id) return;
         if (room.phase !== "drawing") return;
         room.strokes.push(null);
+        // FIX: relay mouseDown to guessers so their strokeHistory groups stay in sync
+        broadcast(room, { type: "mouseDown" }, playerId);
         break;
 
       case "guess":
@@ -349,12 +310,10 @@ wss.on("connection", (ws) => {
         break;
 
       case "chat":
-        // Anyone can send a chat message (drawer included)
         broadcast(room, { type: "chat", name: player.name, text: msg.text });
         break;
 
       case "drawerChat":
-        // Drawer sends a chat (not a guess attempt)
         broadcast(room, { type: "chat", name: player.name, text: msg.text, isDrawer: true });
         break;
 
@@ -377,7 +336,12 @@ wss.on("connection", (ws) => {
       send(room.players[0].ws, { type: "youAreHost" });
     }
 
-    broadcast(room, { type: "playerLeft", name, players: room.players.map(p => p.name) });
+    broadcast(room, {
+      type: "playerLeft",
+      name,
+      players: room.players.map(p => p.name),
+      host: getHostName(room),
+    });
 
     if (room.players.length === 0) {
       clearTimer(room);
