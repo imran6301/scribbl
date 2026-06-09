@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <title>Scribbl 🎨</title>
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -12,160 +12,320 @@
   --accent:#e63946;--teal:#2a9d8f;--yellow:#f4d35e;--blue:#457b9d;
   --border:3px solid var(--ink);--radius:12px;--shadow:4px 4px 0 var(--ink);
 }
-html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);color:var(--ink)}
+html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);color:var(--ink);overflow:hidden}
 
-/* ── LOBBY ── */
-#lobby{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  height:100vh;gap:20px;background:var(--paper)}
-.logo{font-family:'Bangers',cursive;font-size:clamp(52px,10vw,90px);letter-spacing:4px;
+/* ════════════════════════════════
+   LOBBY
+════════════════════════════════ */
+#lobby{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:16px;background:var(--paper);overflow-y:auto;padding:20px 0;
+}
+.logo{font-family:'Bangers',cursive;font-size:clamp(42px,10vw,80px);letter-spacing:4px;
   color:var(--ink);text-shadow:5px 5px 0 var(--accent);line-height:1}
-.tagline{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:3px;opacity:.5;margin-top:-10px}
+.tagline{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:3px;opacity:.5;margin-top:-8px}
 .card{background:var(--cream);border:var(--border);border-radius:var(--radius);
-  box-shadow:var(--shadow);padding:28px 32px;display:flex;flex-direction:column;
-  gap:14px;width:min(420px,92vw)}
-.card label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:-8px}
-.card input,.card select{padding:10px 14px;border:var(--border);border-radius:8px;font-family:inherit;
-  font-size:15px;font-weight:700;background:var(--paper);outline:none;appearance:none;-webkit-appearance:none}
+  box-shadow:var(--shadow);padding:22px 24px;display:flex;flex-direction:column;
+  gap:12px;width:min(420px,94vw)}
+.card label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:-6px}
+.card input,.card select{
+  padding:10px 14px;border:var(--border);border-radius:8px;font-family:inherit;
+  font-size:16px;font-weight:700;background:var(--paper);outline:none;
+  appearance:none;-webkit-appearance:none;width:100%;
+}
 .card input:focus,.card select:focus{box-shadow:3px 3px 0 var(--teal);border-color:var(--teal)}
 .card input:disabled,.card select:disabled{opacity:.45;cursor:not-allowed}
-.btn{padding:12px 20px;font-family:'Bangers',cursive;font-size:22px;letter-spacing:2px;
+.btn{
+  padding:12px 20px;font-family:'Bangers',cursive;font-size:22px;letter-spacing:2px;
   border:var(--border);border-radius:8px;cursor:pointer;transition:transform .1s,box-shadow .1s;
-  box-shadow:var(--shadow)}
+  box-shadow:var(--shadow);width:100%;
+}
 .btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
 .btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-teal{background:var(--teal);color:#fff}
-.btn-yellow{background:var(--yellow);color:var(--ink)}
 #lobbyPlayerList{list-style:none;display:flex;flex-wrap:wrap;gap:8px}
 #lobbyPlayerList li{background:var(--yellow);border:2px solid var(--ink);border-radius:20px;
-  padding:4px 14px;font-weight:800;font-size:13px}
+  padding:4px 12px;font-weight:800;font-size:13px}
 #lobbyPlayerList li.host-tag::after{content:" 👑";font-size:11px}
-.settings-row{display:flex;gap:12px}
-.settings-row > div{flex:1;display:flex;flex-direction:column;gap:6px}
+.settings-row{display:flex;gap:10px}
+.settings-row>div{flex:1;display:flex;flex-direction:column;gap:5px}
 .settings-note{font-size:11px;opacity:.5;text-align:center}
 .settings-locked-note{font-size:11px;color:var(--blue);font-weight:700;text-align:center}
 #hostOnlySettings{display:none}
-.lobby-mode-tabs{display:flex;gap:0;border:var(--border);border-radius:8px;overflow:hidden}
-.lobby-tab{flex:1;padding:10px;font-family:'Bangers',cursive;font-size:18px;letter-spacing:1px;
+.lobby-mode-tabs{display:flex;border:var(--border);border-radius:8px;overflow:hidden}
+.lobby-tab{flex:1;padding:10px;font-family:'Bangers',cursive;font-size:17px;letter-spacing:1px;
   background:var(--paper);border:none;cursor:pointer;transition:background .15s;color:var(--ink)}
 .lobby-tab.active{background:var(--accent);color:#fff}
-.room-code-display{background:var(--yellow);border:var(--border);border-radius:8px;
-  padding:10px 14px;text-align:center;font-family:'Bangers',cursive;font-size:22px;
-  letter-spacing:4px;color:var(--ink)}
+.room-code-display{
+  background:var(--yellow);border:var(--border);border-radius:8px;
+  padding:10px 14px;text-align:center;font-family:'Bangers',cursive;font-size:24px;
+  letter-spacing:5px;color:var(--ink);
+}
 .room-code-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;
-  opacity:.5;margin-bottom:-6px;text-align:center}
+  opacity:.5;margin-bottom:-4px;text-align:center}
 
-/* ── GAME ── */
-#game{display:none;width:100vw;height:100vh;flex-direction:column;overflow:hidden}
+/* ════════════════════════════════
+   GAME — shared shell
+════════════════════════════════ */
+#game{display:none;width:100vw;height:100%;flex-direction:column;overflow:hidden}
 #game.active{display:flex}
-#topBar{flex-shrink:0;height:54px;display:flex;align-items:center;gap:12px;
-  padding:0 16px;background:var(--ink);color:#fff}
-#topBar .logo-sm{font-family:'Bangers',cursive;font-size:26px;letter-spacing:2px;
+
+/* Top bar */
+#topBar{
+  flex-shrink:0;height:46px;display:flex;align-items:center;gap:8px;
+  padding:0 10px;background:var(--ink);color:#fff;
+}
+#topBar .logo-sm{font-family:'Bangers',cursive;font-size:22px;letter-spacing:2px;
   color:var(--yellow);text-shadow:2px 2px 0 var(--accent);flex-shrink:0}
-#wordDisplay{flex:1;text-align:center;font-family:'Bangers',cursive;font-size:28px;
-  letter-spacing:6px;color:var(--yellow)}
-#timer{font-family:'Bangers',cursive;font-size:28px;min-width:54px;
-  text-align:right;color:var(--yellow)}
+#wordDisplay{flex:1;text-align:center;font-family:'Bangers',cursive;font-size:20px;
+  letter-spacing:4px;color:var(--yellow);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#timer{font-family:'Bangers',cursive;font-size:24px;min-width:40px;
+  text-align:right;color:var(--yellow);flex-shrink:0}
 #timer.urgent{color:var(--accent);animation:pulse .5s infinite alternate}
 @keyframes pulse{to{opacity:.4}}
-#roundBadge{background:var(--teal);color:#fff;border-radius:6px;padding:2px 10px;
-  font-weight:800;font-size:12px;flex-shrink:0}
-#mainRow{flex:1;display:flex;overflow:hidden;min-height:0}
+#roundBadge{background:var(--teal);color:#fff;border-radius:6px;padding:2px 7px;
+  font-weight:800;font-size:11px;flex-shrink:0;white-space:nowrap}
 
-/* player panel */
-#playerPanel{width:150px;flex-shrink:0;border-right:var(--border);background:var(--cream);
-  overflow-y:auto;padding:8px 6px;display:flex;flex-direction:column;gap:6px}
-.player-card{border:2px solid var(--ink);border-radius:10px;padding:7px 9px;
-  display:flex;flex-direction:column;gap:2px;background:var(--paper);position:relative;transition:background .2s}
-.player-card.drawing{background:var(--yellow);border-color:var(--accent)}
-.player-card.guessed{background:#d4edda}
-.player-name{font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.player-score{font-size:11px;font-weight:700;color:var(--accent)}
-.drawing-badge{position:absolute;top:-8px;right:-4px;font-size:15px}
+/* ════════════════════════════════
+   DESKTOP layout (≥ 601px)
+════════════════════════════════ */
+@media(min-width:601px){
+  #mainRow{flex:1;display:flex;overflow:hidden;min-height:0}
 
-/* canvas area */
-#canvasWrap{flex:1;position:relative;background:#fff;overflow:hidden;min-width:0}
-#drawCanvas{display:block;touch-action:none;cursor:crosshair}
+  /* player panel */
+  #playerPanel{
+    width:140px;flex-shrink:0;border-right:var(--border);background:var(--cream);
+    overflow-y:auto;padding:8px 6px;display:flex;flex-direction:column;gap:6px;
+  }
+  .player-card{
+    border:2px solid var(--ink);border-radius:10px;padding:7px 9px;
+    display:flex;flex-direction:column;gap:2px;background:var(--paper);
+    position:relative;transition:background .2s;
+  }
+  .player-card.drawing{background:var(--yellow);border-color:var(--accent)}
+  .player-card.guessed{background:#d4edda}
+  .player-name{font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .player-score{font-size:11px;font-weight:700;color:var(--accent)}
+  .drawing-badge{position:absolute;top:-8px;right:-4px;font-size:15px}
 
-/* toolbar */
-#toolbar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
-  display:flex;align-items:center;gap:7px;background:var(--ink);
-  border-radius:40px;padding:8px 14px;box-shadow:0 4px 16px rgba(0,0,0,.35)}
-#toolbar.hidden{display:none}
-.color-btn{width:24px;height:24px;border-radius:50%;border:2px solid transparent;
-  cursor:pointer;transition:transform .1s,border-color .1s;flex-shrink:0}
-.color-btn.active,.color-btn:hover{border-color:#fff;transform:scale(1.2)}
-.tool-sep{width:2px;height:22px;background:rgba(255,255,255,.2);border-radius:2px;flex-shrink:0}
-.size-btn{background:none;border:none;cursor:pointer;color:#fff;font-size:18px;
-  line-height:1;padding:2px 4px;border-radius:4px;transition:background .1s;opacity:.5}
-.size-btn.active{opacity:1}
-.size-btn:hover{background:rgba(255,255,255,.15)}
-.tool-btn{background:none;border:none;cursor:pointer;color:#fff;font-size:18px;
-  line-height:1;padding:4px 6px;border-radius:6px;transition:background .15s,outline .1s;opacity:.8}
-.tool-btn:hover{background:rgba(255,255,255,.15);opacity:1}
-.tool-btn.active{background:rgba(255,255,255,.25);outline:2px solid #fff;opacity:1}
-#clearBtn{background:var(--accent);border:none;color:#fff;font-family:'Bangers',cursive;
-  font-size:14px;letter-spacing:1px;padding:4px 10px;border-radius:20px;cursor:pointer}
-#clearBtn:hover{background:#c1121f}
+  /* canvas area */
+  #canvasWrap{flex:1;position:relative;background:#fff;overflow:hidden;min-width:0}
+  #drawCanvas{display:block;touch-action:none;cursor:crosshair}
 
-/* overlay */
+  /* toolbar (desktop: floating pill at bottom) */
+  #toolbar{
+    position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+    display:flex;align-items:center;gap:6px;background:var(--ink);
+    border-radius:40px;padding:7px 12px;box-shadow:0 4px 16px rgba(0,0,0,.35);
+    white-space:nowrap;
+  }
+  #toolbar.hidden{display:none}
+
+  /* chat panel */
+  #chatPanel{
+    width:200px;flex-shrink:0;display:flex;flex-direction:column;
+    border-left:var(--border);background:var(--cream);overflow:hidden;
+  }
+
+  /* Mobile-only elements hidden on desktop */
+  #mobilePlayerStrip{display:none}
+  #mobileChatToggle{display:none}
+  #mobileChatDrawer{display:none}
+  #mobileToolbar{display:none}
+  #mobileBottomBar{display:none}
+}
+
+/* ════════════════════════════════
+   MOBILE layout (≤ 600px)
+════════════════════════════════ */
+@media(max-width:600px){
+  /* Hide desktop-only panels */
+  #playerPanel{display:none}
+  #chatPanel{display:none}
+  /* mainRow: just canvas */
+  #mainRow{flex:1;display:flex;overflow:hidden;min-height:0;position:relative}
+
+  /* canvas fills everything */
+  #canvasWrap{flex:1;position:relative;background:#fff;overflow:hidden}
+  #drawCanvas{display:block;touch-action:none;cursor:crosshair}
+
+  /* Desktop floating toolbar hidden */
+  #toolbar{display:none !important}
+
+  /* ── Mobile player strip (horizontal row below topBar) ── */
+  #mobilePlayerStrip{
+    flex-shrink:0;display:flex;gap:6px;padding:5px 8px;
+    background:var(--cream);border-bottom:2px solid var(--ink);
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+  #mobilePlayerStrip::-webkit-scrollbar{display:none}
+  .m-player-chip{
+    display:flex;align-items:center;gap:5px;flex-shrink:0;
+    border:2px solid var(--ink);border-radius:20px;padding:4px 10px;
+    background:var(--paper);font-size:12px;font-weight:800;
+    transition:background .2s;position:relative;
+  }
+  .m-player-chip.drawing{background:var(--yellow);border-color:var(--accent)}
+  .m-player-chip.guessed{background:#d4edda}
+  .m-player-chip .m-score{font-size:10px;color:var(--accent);font-weight:700}
+  .m-player-chip .m-badge{font-size:11px}
+
+  /* ── Mobile bottom bar: toolbar + chat toggle ── */
+  #mobileBottomBar{
+    flex-shrink:0;display:flex;flex-direction:column;
+    background:var(--ink);border-top:2px solid rgba(255,255,255,.15);
+  }
+
+  /* Mobile toolbar: scrollable row of tools */
+  #mobileToolbar{
+    display:flex;align-items:center;gap:6px;padding:7px 10px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+  #mobileToolbar::-webkit-scrollbar{display:none}
+  #mobileToolbar.hidden{display:none}
+  .color-btn{
+    width:26px;height:26px;border-radius:50%;border:2px solid transparent;
+    cursor:pointer;flex-shrink:0;transition:transform .1s,border-color .1s;
+  }
+  .color-btn.active,.color-btn:hover{border-color:#fff;transform:scale(1.2)}
+  .tool-sep{width:1px;height:22px;background:rgba(255,255,255,.25);border-radius:2px;flex-shrink:0}
+  .size-btn{
+    background:none;border:none;cursor:pointer;color:#fff;font-size:16px;
+    line-height:1;padding:3px 5px;border-radius:4px;opacity:.5;flex-shrink:0;
+  }
+  .size-btn.active{opacity:1;background:rgba(255,255,255,.15)}
+  .tool-btn{
+    background:none;border:none;cursor:pointer;color:#fff;font-size:18px;
+    line-height:1;padding:4px 6px;border-radius:6px;opacity:.8;flex-shrink:0;
+  }
+  .tool-btn.active{background:rgba(255,255,255,.25);outline:2px solid #fff;opacity:1}
+  #clearBtn{
+    background:var(--accent);border:none;color:#fff;font-family:'Bangers',cursive;
+    font-size:13px;letter-spacing:1px;padding:4px 10px;border-radius:16px;
+    cursor:pointer;flex-shrink:0;white-space:nowrap;
+  }
+
+  /* Mobile chat toggle button row */
+  #mobileChatToggle{
+    display:flex;align-items:center;gap:0;border-top:1px solid rgba(255,255,255,.1);
+  }
+  #mobileChatInput{
+    flex:1;padding:9px 10px;border:none;font-family:inherit;font-size:14px;
+    background:var(--paper);outline:none;min-width:0;
+  }
+  #mobileSendBtn{
+    padding:0 14px;background:var(--accent);color:#fff;border:none;
+    border-left:2px solid var(--ink);font-family:'Bangers',cursive;font-size:17px;
+    cursor:pointer;height:100%;white-space:nowrap;
+  }
+  #mobileChatExpand{
+    padding:0 12px;background:none;border:none;color:#fff;font-size:18px;
+    cursor:pointer;flex-shrink:0;opacity:.7;
+  }
+
+  /* Mobile chat drawer: slides up */
+  #mobileChatDrawer{
+    position:fixed;bottom:0;left:0;right:0;
+    background:var(--cream);border-top:var(--border);
+    border-radius:16px 16px 0 0;
+    z-index:20;
+    transform:translateY(100%);
+    transition:transform .25s ease;
+    max-height:55vh;display:flex;flex-direction:column;
+  }
+  #mobileChatDrawer.open{transform:translateY(0)}
+  #drawerHeader{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px;border-bottom:2px solid var(--ink);flex-shrink:0;
+  }
+  #drawerHeader span{font-family:'Bangers',cursive;font-size:18px;letter-spacing:1px}
+  #drawerClose{background:none;border:none;font-size:20px;cursor:pointer;padding:0 4px}
+  #drawerMessages{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:4px}
+  #drawerMessages::-webkit-scrollbar{width:3px}
+  #drawerMessages::-webkit-scrollbar-thumb{background:var(--ink);border-radius:3px}
+
+  /* overlay adjust for mobile */
+  #overlayBox{padding:20px 18px;max-width:96vw}
+  #overlayTitle{font-size:26px}
+  .word-choice-btn{font-size:20px;padding:11px}
+  #choosingBanner{font-size:18px;padding:16px 20px;width:80%}
+}
+
+/* ════════════════════════════════
+   Shared (both breakpoints)
+════════════════════════════════ */
+/* Desktop toolbar colors/tools (reused classes) */
+@media(min-width:601px){
+  .color-btn{
+    width:22px;height:22px;border-radius:50%;border:2px solid transparent;
+    cursor:pointer;flex-shrink:0;transition:transform .1s,border-color .1s;
+  }
+  .color-btn.active,.color-btn:hover{border-color:#fff;transform:scale(1.15)}
+  .tool-sep{width:2px;height:20px;background:rgba(255,255,255,.2);border-radius:2px;flex-shrink:0}
+  .size-btn{background:none;border:none;cursor:pointer;color:#fff;font-size:16px;
+    line-height:1;padding:2px 3px;border-radius:4px;opacity:.5}
+  .size-btn.active{opacity:1}
+  .size-btn:hover{background:rgba(255,255,255,.15)}
+  .tool-btn{background:none;border:none;cursor:pointer;color:#fff;font-size:17px;
+    line-height:1;padding:4px 5px;border-radius:6px;opacity:.8}
+  .tool-btn.active{background:rgba(255,255,255,.25);outline:2px solid #fff;opacity:1}
+  .tool-btn:hover{background:rgba(255,255,255,.15);opacity:1}
+  #clearBtn{background:var(--accent);border:none;color:#fff;font-family:'Bangers',cursive;
+    font-size:13px;letter-spacing:1px;padding:4px 10px;border-radius:20px;cursor:pointer}
+  #clearBtn:hover{background:#c1121f}
+}
+
+/* overlay (shared) */
 #overlay{position:absolute;inset:0;background:rgba(26,26,46,.82);
   display:flex;align-items:center;justify-content:center;z-index:10}
 #overlay.hidden{display:none}
 #overlayBox{background:var(--cream);border:var(--border);border-radius:var(--radius);
-  box-shadow:var(--shadow);padding:28px 32px;text-align:center;
-  max-width:360px;width:90%;display:flex;flex-direction:column;gap:12px}
-#overlayTitle{font-family:'Bangers',cursive;font-size:34px;letter-spacing:2px;color:var(--accent)}
+  box-shadow:var(--shadow);padding:24px 28px;text-align:center;
+  max-width:360px;width:92%;display:flex;flex-direction:column;gap:10px}
+#overlayTitle{font-family:'Bangers',cursive;font-size:30px;letter-spacing:2px;color:var(--accent)}
 #overlayBody{font-size:14px;line-height:1.6}
-.word-choice-grid{display:flex;flex-direction:column;gap:10px;margin-top:4px}
-.word-choice-btn{padding:14px;font-family:'Bangers',cursive;font-size:26px;letter-spacing:3px;
+.word-choice-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.word-choice-btn{padding:12px;font-family:'Bangers',cursive;font-size:24px;letter-spacing:3px;
   border:var(--border);border-radius:8px;cursor:pointer;background:var(--paper);
   transition:background .15s,transform .1s,box-shadow .1s;box-shadow:var(--shadow)}
-.word-choice-btn:hover{background:var(--yellow);transform:scale(1.04);box-shadow:5px 5px 0 var(--ink)}
-.word-choice-btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.word-choice-btn:hover,.word-choice-btn:active{background:var(--yellow);transform:scale(1.03);box-shadow:4px 4px 0 var(--ink)}
 .score-row{display:flex;justify-content:space-between;padding:7px 12px;
   border:2px solid var(--ink);border-radius:8px;background:var(--paper);font-weight:800;font-size:13px}
 .score-row:first-child{background:var(--yellow)}
 
-/* chat panel */
-#chatPanel{width:210px;flex-shrink:0;display:flex;flex-direction:column;
-  border-left:var(--border);background:var(--cream);overflow:hidden}
-#chatMessages{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:4px;min-height:0}
+/* Desktop chat */
+@media(min-width:601px){
+  #chatMessages{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:4px;min-height:0}
+  #chatInputRow{display:flex;border-top:var(--border);flex-shrink:0}
+  #chatInput{flex:1;padding:9px 8px;border:none;font-family:inherit;font-size:13px;
+    background:var(--paper);outline:none;min-width:0}
+  #sendBtn{padding:0 12px;background:var(--accent);color:#fff;border:none;
+    border-left:var(--border);font-family:'Bangers',cursive;font-size:17px;cursor:pointer}
+}
 .chat-msg{font-size:12px;line-height:1.4;word-break:break-word;padding:4px 7px;border-radius:6px}
 .chat-msg.system{color:var(--blue);font-weight:700;font-style:italic}
 .chat-msg.correct{background:#d4edda;font-weight:800;color:#155724;border-left:3px solid #28a745}
 .chat-msg.self{background:#e8f4fd;border-left:3px solid var(--blue)}
 .chat-msg.drawer-chat{background:#fff8e1;border-left:3px solid var(--yellow)}
 .chat-msg strong{font-weight:800}
-#chatInputRow{display:flex;border-top:var(--border);flex-shrink:0}
-#chatInput{flex:1;padding:9px 8px;border:none;font-family:inherit;font-size:13px;
-  background:var(--paper);outline:none;min-width:0}
-#sendBtn{padding:0 12px;background:var(--accent);color:#fff;border:none;
-  border-left:var(--border);font-family:'Bangers',cursive;font-size:17px;cursor:pointer}
 
-/* word-choosing waiting banner */
+/* choosing banner */
 #choosingBanner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   background:var(--cream);border:var(--border);border-radius:var(--radius);
-  box-shadow:var(--shadow);padding:22px 32px;text-align:center;
-  font-family:'Bangers',cursive;font-size:26px;letter-spacing:3px;color:var(--ink);
-  pointer-events:none;z-index:5;display:none}
-
-/* responsive */
-@media(max-width:600px){
-  #playerPanel{width:90px}
-  #chatPanel{width:160px}
-}
+  box-shadow:var(--shadow);padding:18px 24px;text-align:center;
+  font-family:'Bangers',cursive;font-size:22px;letter-spacing:3px;color:var(--ink);
+  pointer-events:none;z-index:5;display:none;width:80%;max-width:340px}
 </style>
 </head>
 <body>
 
-<!-- LOBBY -->
+<!-- ══════════════ LOBBY ══════════════ -->
 <div id="lobby">
   <div class="logo">Scribbl!</div>
   <div class="tagline">Draw · Guess · Win</div>
 
   <div class="card" id="joinCard">
-    <!-- Mode tabs: Create or Join -->
     <div class="lobby-mode-tabs">
       <button class="lobby-tab active" id="tabCreate" onclick="setLobbyMode('create')">✏️ Create Room</button>
       <button class="lobby-tab" id="tabJoin" onclick="setLobbyMode('join')">🚪 Join Room</button>
@@ -175,8 +335,7 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
     <input id="nameInput" placeholder="e.g. Picasso" maxlength="16"/>
 
     <div id="createSection">
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <!-- Settings shown upfront for creator -->
+      <div style="display:flex;flex-direction:column;gap:12px">
         <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px">⚙️ Game Settings</div>
         <div class="settings-row">
           <div>
@@ -201,82 +360,74 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
             </select>
           </div>
         </div>
-        <button class="btn btn-accent" id="createBtn" style="background:var(--accent);color:#fff;font-family:'Bangers',cursive;font-size:22px;letter-spacing:2px;border:var(--border);border-radius:8px;cursor:pointer;padding:12px 20px;box-shadow:var(--shadow)">Create Room →</button>
+        <button class="btn btn-primary" id="createBtn">Create Room →</button>
       </div>
     </div>
 
-    <div id="joinSection" style="display:none;flex-direction:column;gap:14px">
+    <div id="joinSection" style="display:none;flex-direction:column;gap:12px">
       <label>Room Code</label>
       <input id="roomInput" placeholder="Enter room code" maxlength="20"/>
       <button class="btn btn-primary" id="joinBtn">Join Room →</button>
     </div>
   </div>
 
-  <!-- Wait room card -->
+  <!-- Wait card -->
   <div class="card" id="waitCard" style="display:none">
-    <div style="font-family:'Bangers',cursive;font-size:22px;letter-spacing:2px">Waiting for players…</div>
-
+    <div style="font-family:'Bangers',cursive;font-size:20px;letter-spacing:2px">Waiting for players…</div>
     <div class="room-code-label">Share this room code</div>
     <div class="room-code-display" id="displayRoomCode">---</div>
-
     <ul id="lobbyPlayerList"></ul>
-
-    <!-- Settings shown in lobby for host (can still change before start) -->
     <div id="hostOnlySettings">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">⚙️ Change Settings</div>
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px">⚙️ Change Settings</div>
       <div class="settings-row">
         <div>
           <label>Rounds</label>
           <select id="settingRounds">
-            <option value="1">1 round</option>
-            <option value="2">2 rounds</option>
-            <option value="3" selected>3 rounds</option>
-            <option value="4">4 rounds</option>
-            <option value="5">5 rounds</option>
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
           </select>
         </div>
         <div>
           <label>Draw Time</label>
           <select id="settingTime">
-            <option value="30">30 sec</option>
-            <option value="45">45 sec</option>
-            <option value="60">60 sec</option>
-            <option value="80" selected>80 sec</option>
-            <option value="120">120 sec</option>
-            <option value="180">180 sec</option>
+            <option value="30">30s</option><option value="45">45s</option>
+            <option value="60">60s</option><option value="80" selected>80s</option>
+            <option value="120">120s</option><option value="180">180s</option>
           </select>
         </div>
       </div>
     </div>
-
-    <div id="nonHostSettingsNote" style="display:none" class="settings-locked-note">
-      ⚙️ Host controls game settings
-    </div>
-
+    <div id="nonHostSettingsNote" style="display:none" class="settings-locked-note">⚙️ Host controls game settings</div>
     <button class="btn btn-teal" id="startBtn">▶ Start Game!</button>
-    <div class="settings-note">Need at least 2 players · Only host can start</div>
+    <div class="settings-note">Need ≥ 2 players · Only host can start</div>
   </div>
 </div>
 
-<!-- GAME -->
+<!-- ══════════════ GAME ══════════════ -->
 <div id="game">
+  <!-- Top bar -->
   <div id="topBar">
     <div class="logo-sm">Scribbl!</div>
-    <div id="roundBadge">Round 1/3</div>
+    <div id="roundBadge">Rd 1/3</div>
     <div id="wordDisplay">- - -</div>
     <div id="timer">80</div>
   </div>
 
+  <!-- Mobile: horizontal player strip -->
+  <div id="mobilePlayerStrip"></div>
+
+  <!-- Main row: player panel + canvas + chat (desktop) / canvas only (mobile) -->
   <div id="mainRow">
+    <!-- Desktop player panel -->
     <div id="playerPanel"></div>
 
+    <!-- Canvas wrap -->
     <div id="canvasWrap">
       <canvas id="drawCanvas"></canvas>
-
       <div id="choosingBanner"></div>
 
+      <!-- Desktop toolbar (floating pill) -->
       <div id="toolbar" class="hidden">
-        <!-- Colors -->
         <div class="color-btn active" data-color="#1a1a2e" style="background:#1a1a2e"></div>
         <div class="color-btn" data-color="#e63946" style="background:#e63946"></div>
         <div class="color-btn" data-color="#2a9d8f" style="background:#2a9d8f"></div>
@@ -285,26 +436,18 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
         <div class="color-btn" data-color="#ff9f1c" style="background:#ff9f1c"></div>
         <div class="color-btn" data-color="#6d4c41" style="background:#6d4c41"></div>
         <div class="color-btn" data-color="#ffffff" style="background:#fff;border-color:#aaa"></div>
-
         <div class="tool-sep"></div>
-
-        <!-- Sizes -->
         <button class="size-btn" data-size="2">•</button>
         <button class="size-btn" data-size="5">•</button>
         <button class="size-btn active" data-size="8">●</button>
         <button class="size-btn" data-size="12">●</button>
         <button class="size-btn" data-size="18">⬤</button>
         <button class="size-btn" data-size="28">⬤</button>
-
         <div class="tool-sep"></div>
-
-        <!-- Tools -->
         <button class="tool-btn" id="eraserBtn" title="Eraser">🩹</button>
         <button class="tool-btn" id="fillBtn" title="Fill">🪣</button>
-        <button class="tool-btn" id="undoBtn" title="Undo (Ctrl+Z)">↶</button>
-
+        <button class="tool-btn" id="undoBtn" title="Undo">↶</button>
         <div class="tool-sep"></div>
-
         <button id="clearBtn">CLEAR</button>
       </div>
 
@@ -316,6 +459,7 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
       </div>
     </div>
 
+    <!-- Desktop chat panel -->
     <div id="chatPanel">
       <div id="chatMessages"></div>
       <div id="chatInputRow">
@@ -324,695 +468,611 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--paper);co
       </div>
     </div>
   </div>
+
+  <!-- Mobile bottom bar: toolbar + chat input -->
+  <div id="mobileBottomBar">
+    <!-- Mobile toolbar row -->
+    <div id="mobileToolbar" class="hidden">
+      <div class="color-btn active" data-color="#1a1a2e" style="background:#1a1a2e"></div>
+      <div class="color-btn" data-color="#e63946" style="background:#e63946"></div>
+      <div class="color-btn" data-color="#2a9d8f" style="background:#2a9d8f"></div>
+      <div class="color-btn" data-color="#457b9d" style="background:#457b9d"></div>
+      <div class="color-btn" data-color="#f4d35e" style="background:#f4d35e"></div>
+      <div class="color-btn" data-color="#ff9f1c" style="background:#ff9f1c"></div>
+      <div class="color-btn" data-color="#6d4c41" style="background:#6d4c41"></div>
+      <div class="color-btn" data-color="#ffffff" style="background:#fff;border-color:#999"></div>
+      <div class="tool-sep"></div>
+      <button class="size-btn" data-size="2">·</button>
+      <button class="size-btn" data-size="5">•</button>
+      <button class="size-btn active" data-size="8">●</button>
+      <button class="size-btn" data-size="14">⬤</button>
+      <button class="size-btn" data-size="24">⬤</button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" id="eraserBtnM" title="Eraser">🩹</button>
+      <button class="tool-btn" id="fillBtnM" title="Fill">🪣</button>
+      <button class="tool-btn" id="undoBtnM" title="Undo">↶</button>
+      <div class="tool-sep"></div>
+      <button id="clearBtnM">CLEAR</button>
+    </div>
+    <!-- Mobile chat toggle -->
+    <div id="mobileChatToggle">
+      <input id="mobileChatInput" placeholder="Type guess…" maxlength="80" autocomplete="off"/>
+      <button id="mobileChatExpand" title="Show chat history">💬</button>
+      <button id="mobileSendBtn">GO</button>
+    </div>
+  </div>
+
+  <!-- Mobile chat drawer (slides up) -->
+  <div id="mobileChatDrawer">
+    <div id="drawerHeader">
+      <span>💬 Chat</span>
+      <button id="drawerClose">✕</button>
+    </div>
+    <div id="drawerMessages"></div>
+  </div>
 </div>
 
 <script>
 // ── Config ──────────────────────────────────────────────────────
-const WS_URL = location.protocol === "https:"
-  ? `wss://${location.host}`
-  : `ws://${location.host}`;
+const WS_URL = location.protocol==="https:"?`wss://${location.host}`:`ws://${location.host}`;
+const isMobile = () => window.innerWidth <= 600;
 
 // ── State ───────────────────────────────────────────────────────
-let ws, myId, myName, myRole = "guesser", isHost = false;
-let drawing = false, lastX = 0, lastY = 0;
-let currentColor = "#1a1a2e", currentSize = 8;
-let fillMode = false, eraserMode = false;
-let playerData = {};
-let roundNum = 1, totalRounds = 3, roundTime = 80;
-let lobbyMode = "create"; // "create" or "join"
-let currentRoomId = null;
-
-let strokeHistory = [];
-let currentGroup = null;
+let ws, myId, myName, myRole="guesser", isHost=false;
+let drawing=false, lastX=0, lastY=0;
+let currentColor="#1a1a2e", currentSize=8;
+let fillMode=false, eraserMode=false;
+let playerData={};
+let roundNum=1, totalRounds=3, roundTime=80;
+let lobbyMode="create";
+let hostPlayerName=null;
+let strokeHistory=[], currentGroup=null;
 
 // ── DOM ─────────────────────────────────────────────────────────
-const $ = id => document.getElementById(id);
-const lobby           = $("lobby");
-const game            = $("game");
-const joinCard        = $("joinCard");
-const waitCard        = $("waitCard");
-const nameInput       = $("nameInput");
-const roomInput       = $("roomInput");
-const joinBtn         = $("joinBtn");
-const createBtn       = $("createBtn");
-const startBtn        = $("startBtn");
-const lobbyList       = $("lobbyPlayerList");
-const hostSettings    = $("hostOnlySettings");
-const nonHostNote     = $("nonHostSettingsNote");
-const settingRounds   = $("settingRounds");
-const settingTime     = $("settingTime");
-const settingRoundsL  = $("settingRoundsLobby");
-const settingTimeL    = $("settingTimeLobby");
-const displayRoomCode = $("displayRoomCode");
-const playerPanel     = $("playerPanel");
-const wordDisplay     = $("wordDisplay");
-const timerEl         = $("timer");
-const roundBadge      = $("roundBadge");
-const toolbar         = $("toolbar");
-const overlay         = $("overlay");
-const overlayTitle    = $("overlayTitle");
-const overlayBody     = $("overlayBody");
-const chatMessages    = $("chatMessages");
-const chatInput       = $("chatInput");
-const sendBtn         = $("sendBtn");
-const canvas          = $("drawCanvas");
-const ctx             = canvas.getContext("2d");
-const clearBtn        = $("clearBtn");
-const canvasWrap      = $("canvasWrap");
-const choosingBanner  = $("choosingBanner");
-const eraserBtn       = $("eraserBtn");
-const fillBtn         = $("fillBtn");
-const undoBtn         = $("undoBtn");
+const $=id=>document.getElementById(id);
+const lobby=$("lobby"), game=$("game");
+const joinCard=$("joinCard"), waitCard=$("waitCard");
+const nameInput=$("nameInput"), roomInput=$("roomInput");
+const joinBtn=$("joinBtn"), createBtn=$("createBtn"), startBtn=$("startBtn");
+const lobbyList=$("lobbyPlayerList");
+const hostSettings=$("hostOnlySettings"), nonHostNote=$("nonHostSettingsNote");
+const settingRounds=$("settingRounds"), settingTime=$("settingTime");
+const settingRoundsL=$("settingRoundsLobby"), settingTimeL=$("settingTimeLobby");
+const displayRoomCode=$("displayRoomCode");
+const playerPanel=$("playerPanel");
+const wordDisplay=$("wordDisplay"), timerEl=$("timer"), roundBadge=$("roundBadge");
+// Desktop toolbar
+const toolbar=$("toolbar"), eraserBtn=$("eraserBtn"), fillBtn=$("fillBtn"), undoBtn=$("undoBtn"), clearBtn=$("clearBtn");
+// Mobile toolbar
+const mobileToolbar=$("mobileToolbar"), eraserBtnM=$("eraserBtnM"), fillBtnM=$("fillBtnM"), undoBtnM=$("undoBtnM"), clearBtnM=$("clearBtnM");
+const mobilePlayerStrip=$("mobilePlayerStrip");
+const mobileChatInput=$("mobileChatInput"), mobileSendBtn=$("mobileSendBtn");
+const mobileChatExpand=$("mobileChatExpand"), mobileChatDrawer=$("mobileChatDrawer");
+const drawerClose=$("drawerClose"), drawerMessages=$("drawerMessages");
+const overlay=$("overlay"), overlayTitle=$("overlayTitle"), overlayBody=$("overlayBody");
+const chatMessages=$("chatMessages"), chatInput=$("chatInput"), sendBtn=$("sendBtn");
+const canvas=$("drawCanvas"), ctx=canvas.getContext("2d");
+const canvasWrap=$("canvasWrap"), choosingBanner=$("choosingBanner");
 
-// ── Lobby mode ────────────────────────────────────────────────────
-window.setLobbyMode = function(mode) {
-  lobbyMode = mode;
-  $("tabCreate").classList.toggle("active", mode === "create");
-  $("tabJoin").classList.toggle("active", mode === "join");
-  $("createSection").style.display = mode === "create" ? "block" : "none";
-  $("joinSection").style.display = mode === "join" ? "flex" : "none";
+// ── Lobby mode ─────────────────────────────────────────────────
+window.setLobbyMode=function(mode){
+  lobbyMode=mode;
+  $("tabCreate").classList.toggle("active",mode==="create");
+  $("tabJoin").classList.toggle("active",mode==="join");
+  $("createSection").style.display=mode==="create"?"block":"none";
+  $("joinSection").style.display=mode==="join"?"flex":"none";
 };
 
-// ── Canvas resize ─────────────────────────────────────────────────
-function resizeCanvas() {
-  const r = canvasWrap.getBoundingClientRect();
-  const snap = ctx.getImageData(0, 0, canvas.width || 1, canvas.height || 1);
-  canvas.width  = r.width;
-  canvas.height = r.height;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  try { ctx.putImageData(snap, 0, 0); } catch(e){}
+// ── Canvas resize ──────────────────────────────────────────────
+function resizeCanvas(){
+  const r=canvasWrap.getBoundingClientRect();
+  const snap=ctx.getImageData(0,0,canvas.width||1,canvas.height||1);
+  canvas.width=r.width; canvas.height=r.height;
+  ctx.lineCap="round"; ctx.lineJoin="round";
+  try{ctx.putImageData(snap,0,0);}catch(e){}
 }
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener("resize",resizeCanvas);
 
-// ── Draw helpers ──────────────────────────────────────────────────
-function drawSeg(seg) {
-  ctx.strokeStyle = seg.c;
-  ctx.lineWidth   = seg.s;
-  ctx.lineCap     = "round";
-  ctx.lineJoin    = "round";
-  ctx.beginPath();
-  ctx.moveTo(seg.x1, seg.y1);
-  ctx.lineTo(seg.x2, seg.y2);
-  ctx.stroke();
+// ── Draw helpers ───────────────────────────────────────────────
+function drawSeg(seg){
+  ctx.strokeStyle=seg.c; ctx.lineWidth=seg.s;
+  ctx.lineCap="round"; ctx.lineJoin="round";
+  ctx.beginPath(); ctx.moveTo(seg.x1,seg.y1); ctx.lineTo(seg.x2,seg.y2); ctx.stroke();
+}
+function redrawAll(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  strokeHistory.forEach(g=>{ if(Array.isArray(g)) g.forEach(drawSeg); });
 }
 
-function redrawAll() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  strokeHistory.forEach(group => {
-    if (Array.isArray(group)) group.forEach(drawSeg);
-  });
+// ── Flood fill ─────────────────────────────────────────────────
+function hexToRgba(hex){
+  return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255];
 }
-
-// ── Flood fill ────────────────────────────────────────────────────
-function hexToRgba(hex) {
-  const r = parseInt(hex.slice(1,3),16);
-  const g = parseInt(hex.slice(3,5),16);
-  const b = parseInt(hex.slice(5,7),16);
-  return [r,g,b,255];
+function colorsMatch(a,b,t=30){
+  return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2])+Math.abs(a[3]-b[3])<t;
 }
-
-function colorsMatch(a, b, tolerance=30) {
-  return Math.abs(a[0]-b[0]) + Math.abs(a[1]-b[1]) + Math.abs(a[2]-b[2]) + Math.abs(a[3]-b[3]) < tolerance;
-}
-
-function floodFill(startX, startY, fillColor) {
-  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const data = imgData.data;
-  const w = canvas.width, h = canvas.height;
-  const si = (Math.round(startY) * w + Math.round(startX)) * 4;
-  const targetColor = [data[si], data[si+1], data[si+2], data[si+3]];
-  const fill = hexToRgba(fillColor);
-
-  if (colorsMatch(targetColor, fill, 5)) return;
-
-  const stack = [[Math.round(startX), Math.round(startY)]];
-  const visited = new Uint8Array(w * h);
-
-  while (stack.length) {
-    const [x, y] = stack.pop();
-    if (x < 0 || x >= w || y < 0 || y >= h) continue;
-    const idx = y * w + x;
-    if (visited[idx]) continue;
-    visited[idx] = 1;
-    const i = idx * 4;
-    if (!colorsMatch([data[i],data[i+1],data[i+2],data[i+3]], targetColor)) continue;
-    data[i]   = fill[0];
-    data[i+1] = fill[1];
-    data[i+2] = fill[2];
-    data[i+3] = fill[3];
+function floodFill(startX,startY,fillColor){
+  const d=ctx.getImageData(0,0,canvas.width,canvas.height),data=d.data;
+  const w=canvas.width,h=canvas.height;
+  const si=(Math.round(startY)*w+Math.round(startX))*4;
+  const tc=[data[si],data[si+1],data[si+2],data[si+3]];
+  const fill=hexToRgba(fillColor);
+  if(colorsMatch(tc,fill,5))return;
+  const stack=[[Math.round(startX),Math.round(startY)]];
+  const visited=new Uint8Array(w*h);
+  while(stack.length){
+    const[x,y]=stack.pop();
+    if(x<0||x>=w||y<0||y>=h)continue;
+    const idx=y*w+x; if(visited[idx])continue; visited[idx]=1;
+    const i=idx*4;
+    if(!colorsMatch([data[i],data[i+1],data[i+2],data[i+3]],tc))continue;
+    data[i]=fill[0];data[i+1]=fill[1];data[i+2]=fill[2];data[i+3]=fill[3];
     stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
   }
-  ctx.putImageData(imgData, 0, 0);
+  ctx.putImageData(d,0,0);
 }
 
-// ── Pointer events ────────────────────────────────────────────────
-function getPos(e) {
-  const r = canvas.getBoundingClientRect();
-  const src = e.touches ? e.touches[0] : e;
-  return [src.clientX - r.left, src.clientY - r.top];
+// ── Pointer events ─────────────────────────────────────────────
+function getPos(e){
+  const r=canvas.getBoundingClientRect();
+  const src=e.touches?e.touches[0]:e;
+  return[src.clientX-r.left,src.clientY-r.top];
 }
-
-function onPointerDown(e) {
-  if (myRole !== "drawer") return;
-  if (fillMode) {
-    const [x, y] = getPos(e);
-    floodFill(x, y, currentColor);
-    // Sync fill to all clients
-    ws && ws.send(JSON.stringify({ type:"fill", data:{ x, y, c: currentColor } }));
+function onPointerDown(e){
+  if(myRole!=="drawer")return;
+  if(fillMode){
+    const[x,y]=getPos(e);
+    floodFill(x,y,currentColor);
+    ws&&ws.send(JSON.stringify({type:"fill",data:{x,y,c:currentColor}}));
     return;
   }
-  drawing = true;
-  [lastX, lastY] = getPos(e);
-  currentGroup = [];
-  strokeHistory.push(currentGroup);
-  ws && ws.send(JSON.stringify({ type:"mouseDown" }));
+  drawing=true; [lastX,lastY]=getPos(e);
+  currentGroup=[]; strokeHistory.push(currentGroup);
+  ws&&ws.send(JSON.stringify({type:"mouseDown"}));
 }
-
-function onPointerMove(e) {
-  if (!drawing || myRole !== "drawer") return;
-  const [x, y] = getPos(e);
-  const color = eraserMode ? "#ffffff" : currentColor;
-  const seg = { x1:lastX, y1:lastY, x2:x, y2:y, c:color, s:currentSize };
+function onPointerMove(e){
+  if(!drawing||myRole!=="drawer")return;
+  const[x,y]=getPos(e);
+  const color=eraserMode?"#ffffff":currentColor;
+  const seg={x1:lastX,y1:lastY,x2:x,y2:y,c:color,s:currentSize};
   drawSeg(seg);
-  currentGroup && currentGroup.push(seg);
-  ws && ws.send(JSON.stringify({ type:"draw", data:seg }));
-  [lastX, lastY] = [x, y];
+  currentGroup&&currentGroup.push(seg);
+  ws&&ws.send(JSON.stringify({type:"draw",data:seg}));
+  [lastX,lastY]=[x,y];
 }
+function onPointerUp(){drawing=false;currentGroup=null;}
 
-function onPointerUp() { drawing = false; currentGroup = null; }
+canvas.addEventListener("mousedown",onPointerDown);
+canvas.addEventListener("mousemove",onPointerMove);
+canvas.addEventListener("mouseup",onPointerUp);
+canvas.addEventListener("mouseleave",onPointerUp);
+canvas.addEventListener("touchstart",e=>{e.preventDefault();onPointerDown(e);},{passive:false});
+canvas.addEventListener("touchmove",e=>{e.preventDefault();onPointerMove(e);},{passive:false});
+canvas.addEventListener("touchend",e=>{e.preventDefault();onPointerUp();},{passive:false});
 
-canvas.addEventListener("mousedown",  onPointerDown);
-canvas.addEventListener("mousemove",  onPointerMove);
-canvas.addEventListener("mouseup",    onPointerUp);
-canvas.addEventListener("mouseleave", onPointerUp);
-canvas.addEventListener("touchstart",  e=>{ e.preventDefault(); onPointerDown(e); }, {passive:false});
-canvas.addEventListener("touchmove",   e=>{ e.preventDefault(); onPointerMove(e); }, {passive:false});
-canvas.addEventListener("touchend",    e=>{ e.preventDefault(); onPointerUp(); },    {passive:false});
-
-// ── Toolbar controls ──────────────────────────────────────────────
-document.querySelectorAll(".color-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".color-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentColor = btn.dataset.color;
-    eraserMode = false;
-    eraserBtn.classList.remove("active");
-    fillMode = false;
-    fillBtn.classList.remove("active");
+// ── Toolbar: wire up both desktop + mobile versions ────────────
+function setupToolbar(colorBtns,sizeBtns,eBtn,fBtn,uBtn,cBtn){
+  colorBtns.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      // Sync both toolbars' active states
+      document.querySelectorAll(".color-btn").forEach(b=>b.classList.remove("active"));
+      // Set active on matching color in both bars
+      document.querySelectorAll(`.color-btn[data-color="${btn.dataset.color}"]`)
+        .forEach(b=>b.classList.add("active"));
+      currentColor=btn.dataset.color;
+      eraserMode=false;
+      document.querySelectorAll("#eraserBtn,#eraserBtnM").forEach(b=>b.classList.remove("active"));
+      fillMode=false;
+      document.querySelectorAll("#fillBtn,#fillBtnM").forEach(b=>b.classList.remove("active"));
+    });
   });
-});
-
-document.querySelectorAll(".size-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentSize = parseInt(btn.dataset.size);
+  sizeBtns.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".size-btn").forEach(b=>b.classList.remove("active"));
+      document.querySelectorAll(`.size-btn[data-size="${btn.dataset.size}"]`).forEach(b=>b.classList.add("active"));
+      currentSize=parseInt(btn.dataset.size);
+    });
   });
-});
-
-eraserBtn.addEventListener("click", () => {
-  eraserMode = !eraserMode;
-  eraserBtn.classList.toggle("active", eraserMode);
-  if (eraserMode) { fillMode = false; fillBtn.classList.remove("active"); }
-});
-
-fillBtn.addEventListener("click", () => {
-  fillMode = !fillMode;
-  fillBtn.classList.toggle("active", fillMode);
-  if (fillMode) { eraserMode = false; eraserBtn.classList.remove("active"); }
-});
-
-undoBtn.addEventListener("click", doUndo);
-
-function doUndo() {
-  if (strokeHistory.length === 0) return;
-  strokeHistory.pop();
-  redrawAll();
-  ws && ws.send(JSON.stringify({ type:"undoCanvas" }));
+  if(eBtn) eBtn.addEventListener("click",()=>{
+    eraserMode=!eraserMode;
+    document.querySelectorAll("#eraserBtn,#eraserBtnM").forEach(b=>b.classList.toggle("active",eraserMode));
+    if(eraserMode){fillMode=false;document.querySelectorAll("#fillBtn,#fillBtnM").forEach(b=>b.classList.remove("active"));}
+  });
+  if(fBtn) fBtn.addEventListener("click",()=>{
+    fillMode=!fillMode;
+    document.querySelectorAll("#fillBtn,#fillBtnM").forEach(b=>b.classList.toggle("active",fillMode));
+    if(fillMode){eraserMode=false;document.querySelectorAll("#eraserBtn,#eraserBtnM").forEach(b=>b.classList.remove("active"));}
+  });
+  if(uBtn) uBtn.addEventListener("click",doUndo);
+  if(cBtn) cBtn.addEventListener("click",doClear);
 }
 
-document.addEventListener("keydown", e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "z" && myRole === "drawer") {
-    e.preventDefault();
-    doUndo();
-  }
+setupToolbar(
+  document.querySelectorAll("#toolbar .color-btn"),
+  document.querySelectorAll("#toolbar .size-btn"),
+  eraserBtn,fillBtn,undoBtn,clearBtn
+);
+setupToolbar(
+  document.querySelectorAll("#mobileToolbar .color-btn"),
+  document.querySelectorAll("#mobileToolbar .size-btn"),
+  eraserBtnM,fillBtnM,undoBtnM,clearBtnM
+);
+
+function doUndo(){
+  if(!strokeHistory.length)return;
+  strokeHistory.pop(); redrawAll();
+  ws&&ws.send(JSON.stringify({type:"undoCanvas"}));
+}
+function doClear(){
+  strokeHistory=[]; ctx.clearRect(0,0,canvas.width,canvas.height);
+  ws&&ws.send(JSON.stringify({type:"clearCanvas"}));
+}
+document.addEventListener("keydown",e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==="z"&&myRole==="drawer"){e.preventDefault();doUndo();}
 });
 
-clearBtn.addEventListener("click", () => {
-  strokeHistory = [];
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ws && ws.send(JSON.stringify({ type:"clearCanvas" }));
-});
-
-// ── Chat ──────────────────────────────────────────────────────────
-function addChat(html, cls = "") {
-  const div = document.createElement("div");
-  div.className = "chat-msg " + cls;
-  div.innerHTML = html;
-  chatMessages.appendChild(div);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+function showDrawingTools(show){
+  toolbar.classList.toggle("hidden",!show);
+  mobileToolbar.classList.toggle("hidden",!show);
 }
 
-function sendGuess() {
-  const text = chatInput.value.trim();
-  if (!text || !ws) return;
+// ── Chat (shared logic) ────────────────────────────────────────
+function addChat(html,cls=""){
+  // Add to both desktop and mobile chat
+  [chatMessages,drawerMessages].forEach(container=>{
+    const div=document.createElement("div");
+    div.className="chat-msg "+cls;
+    div.innerHTML=html;
+    container.appendChild(div);
+    container.scrollTop=container.scrollHeight;
+  });
+}
 
-  if (myRole === "drawer") {
-    // Drawer can chat but not guess — send as drawerChat
-    ws.send(JSON.stringify({ type:"drawerChat", text }));
-    addChat(`<strong>${esc(myName)} ✏️:</strong> ${esc(text)}`, "drawer-chat self");
+function sendGuessText(text){
+  if(!text||!ws)return;
+  if(myRole==="drawer"){
+    ws.send(JSON.stringify({type:"drawerChat",text}));
+    addChat(`<strong>${esc(myName)} ✏️:</strong> ${esc(text)}`,"drawer-chat self");
   } else {
-    ws.send(JSON.stringify({ type:"guess", text }));
+    ws.send(JSON.stringify({type:"guess",text}));
   }
-  chatInput.value = "";
 }
 
-sendBtn.addEventListener("click", sendGuess);
-chatInput.addEventListener("keydown", e => { if (e.key === "Enter") sendGuess(); });
+// Desktop chat
+sendBtn.addEventListener("click",()=>{const t=chatInput.value.trim();chatInput.value="";sendGuessText(t);});
+chatInput.addEventListener("keydown",e=>{if(e.key==="Enter"){const t=chatInput.value.trim();chatInput.value="";sendGuessText(t);}});
 
-// ── Players panel ─────────────────────────────────────────────────
-function renderPlayers() {
-  playerPanel.innerHTML = "";
-  Object.entries(playerData).forEach(([name, data]) => {
-    const d = document.createElement("div");
-    d.className = "player-card" + (data.drawing?" drawing":"") + (data.guessed?" guessed":"");
-    d.innerHTML = `${data.drawing ? '<span class="drawing-badge">✏️</span>' : ""}
+// Mobile chat
+mobileSendBtn.addEventListener("click",()=>{const t=mobileChatInput.value.trim();mobileChatInput.value="";sendGuessText(t);});
+mobileChatInput.addEventListener("keydown",e=>{if(e.key==="Enter"){const t=mobileChatInput.value.trim();mobileChatInput.value="";sendGuessText(t);}});
+
+// Mobile chat drawer toggle
+mobileChatExpand.addEventListener("click",()=>mobileChatDrawer.classList.add("open"));
+drawerClose.addEventListener("click",()=>mobileChatDrawer.classList.remove("open"));
+
+function setChatDisabled(disabled,placeholder){
+  chatInput.disabled=disabled; chatInput.placeholder=placeholder;
+  mobileChatInput.disabled=disabled; mobileChatInput.placeholder=placeholder;
+}
+
+// ── Players ────────────────────────────────────────────────────
+function renderPlayers(){
+  // Desktop panel
+  playerPanel.innerHTML="";
+  // Mobile strip
+  mobilePlayerStrip.innerHTML="";
+  Object.entries(playerData).forEach(([name,data])=>{
+    // Desktop card
+    const d=document.createElement("div");
+    d.className="player-card"+(data.drawing?" drawing":"")+(data.guessed?" guessed":"");
+    d.innerHTML=`${data.drawing?'<span class="drawing-badge">✏️</span>':""}
       <div class="player-name">${esc(name)}</div>
       <div class="player-score">${data.score} pts</div>`;
     playerPanel.appendChild(d);
+    // Mobile chip
+    const chip=document.createElement("div");
+    chip.className="m-player-chip"+(data.drawing?" drawing":"")+(data.guessed?" guessed":"");
+    chip.innerHTML=`${data.drawing?'<span class="m-badge">✏️</span>':""}
+      <span>${esc(name)}</span>
+      <span class="m-score">${data.score}p</span>`;
+    mobilePlayerStrip.appendChild(chip);
   });
 }
 
-// ── Overlay ───────────────────────────────────────────────────────
-function showOverlay(title, bodyHTML) {
-  overlayTitle.textContent = title;
-  overlayBody.innerHTML    = bodyHTML;
+// ── Overlay ────────────────────────────────────────────────────
+function showOverlay(title,bodyHTML){
+  overlayTitle.textContent=title;
+  overlayBody.innerHTML=bodyHTML;
   overlay.classList.remove("hidden");
 }
-function hideOverlay() { overlay.classList.add("hidden"); }
+function hideOverlay(){overlay.classList.add("hidden");}
 
-// ── Helpers ───────────────────────────────────────────────────────
-function esc(s) {
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
+// ── Helpers ────────────────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
-function updateLobbyList(players, hostName) {
-  lobbyList.innerHTML = "";
-  players.forEach(name => {
-    const li = document.createElement("li");
-    li.textContent = name;
-    if (name === hostName) li.classList.add("host-tag");
+function updateLobbyList(players,hn){
+  lobbyList.innerHTML="";
+  players.forEach(name=>{
+    const li=document.createElement("li");
+    li.textContent=name;
+    if(name===hn)li.classList.add("host-tag");
     lobbyList.appendChild(li);
   });
 }
 
-function switchToGame() {
-  lobby.style.display = "none";
+function switchToGame(){
+  lobby.style.display="none";
   game.classList.add("active");
-  requestAnimationFrame(() => requestAnimationFrame(resizeCanvas));
+  requestAnimationFrame(()=>requestAnimationFrame(resizeCanvas));
 }
 
-// ── Settings (in-lobby host controls) ─────────────────────────────
-function onSettingChange() {
-  if (!ws || !isHost) return;
-  ws.send(JSON.stringify({
-    type: "updateSettings",
-    roundsTotal: parseInt(settingRounds.value),
-    roundTime: parseInt(settingTime.value),
-  }));
+// ── Settings ───────────────────────────────────────────────────
+function onSettingChange(){
+  if(!ws||!isHost)return;
+  ws.send(JSON.stringify({type:"updateSettings",roundsTotal:parseInt(settingRounds.value),roundTime:parseInt(settingTime.value)}));
 }
-settingRounds.addEventListener("change", onSettingChange);
-settingTime.addEventListener("change", onSettingChange);
+settingRounds.addEventListener("change",onSettingChange);
+settingTime.addEventListener("change",onSettingChange);
 
-// ── WebSocket ─────────────────────────────────────────────────────
-function connect(name, room) {
-  ws = new WebSocket(WS_URL);
-  ws.onopen    = () => ws.send(JSON.stringify({ type:"join", name, room }));
-  ws.onmessage = e => handleMsg(JSON.parse(e.data));
-  ws.onclose   = () => addChat("⚠️ Disconnected.", "system");
+// ── WebSocket ──────────────────────────────────────────────────
+function connect(name,room){
+  ws=new WebSocket(WS_URL);
+  ws.onopen=()=>ws.send(JSON.stringify({type:"join",name,room}));
+  ws.onmessage=e=>patchedHandleMsg(JSON.parse(e.data));
+  ws.onclose=()=>addChat("⚠️ Disconnected.","system");
 }
 
-// ── Message handler ───────────────────────────────────────────────
-let hostPlayerName = null;
-
-function handleMsg(msg) {
-  switch (msg.type) {
+// ── Message handler ────────────────────────────────────────────
+function handleMsg(msg){
+  switch(msg.type){
 
     case "joined":
-      myId = msg.id; myName = msg.name;
-      isHost = msg.isHost || false;
-      currentRoomId = msg.roomId;
-      if (msg.settings) {
-        totalRounds = msg.settings.roundsTotal;
-        roundTime   = msg.settings.roundTime;
-      }
-      joinCard.style.display = "none";
-      waitCard.style.display = "";
-      displayRoomCode.textContent = msg.roomId.toUpperCase();
-
-      // Show/hide host vs non-host UI
-      if (isHost) {
-        hostSettings.style.display = "";
-        nonHostNote.style.display = "none";
-        startBtn.disabled = false;
-        // Sync lobby settings selects
-        settingRounds.value = msg.settings.roundsTotal;
-        settingTime.value = msg.settings.roundTime;
+      myId=msg.id; myName=msg.name; isHost=msg.isHost||false;
+      if(msg.settings){totalRounds=msg.settings.roundsTotal;roundTime=msg.settings.roundTime;}
+      joinCard.style.display="none"; waitCard.style.display="";
+      $("displayRoomCode").textContent=msg.roomId.toUpperCase();
+      if(isHost){
+        hostSettings.style.display=""; nonHostNote.style.display="none";
+        startBtn.disabled=false;
+        settingRounds.value=msg.settings.roundsTotal;
+        settingTime.value=msg.settings.roundTime;
       } else {
-        hostSettings.style.display = "none";
-        nonHostNote.style.display = "";
-        startBtn.disabled = true;
+        hostSettings.style.display="none"; nonHostNote.style.display="";
+        startBtn.disabled=true;
       }
-
-      // Figure out host name from players list (first joined = host, for display)
-      hostPlayerName = msg.players[0]; // server sends ordered list; host is first
-      updateLobbyList(msg.players, hostPlayerName);
-      addChat(`✅ Joined room <strong>${esc(msg.roomId)}</strong>`, "system");
+      hostPlayerName=msg.players[0];
+      updateLobbyList(msg.players,hostPlayerName);
+      addChat(`✅ Joined room <strong>${esc(msg.roomId)}</strong>`,"system");
       break;
 
     case "youAreHost":
-      isHost = true;
-      hostSettings.style.display = "";
-      nonHostNote.style.display = "none";
-      startBtn.disabled = false;
-      addChat("👑 You are now the host!", "system");
+      isHost=true; hostSettings.style.display=""; nonHostNote.style.display="none";
+      startBtn.disabled=false;
+      addChat("👑 You are now the host!","system");
       break;
 
     case "playerJoined":
-      updateLobbyList(msg.players, hostPlayerName);
-      addChat(`👋 <strong>${esc(msg.name)}</strong> joined!`, "system");
+      updateLobbyList(msg.players,hostPlayerName);
+      addChat(`👋 <strong>${esc(msg.name)}</strong> joined!`,"system");
       break;
 
     case "playerLeft":
-      if (msg.players) {
-        updateLobbyList(msg.players, hostPlayerName);
-        const ns = new Set(msg.players);
-        Object.keys(playerData).forEach(n => { if (!ns.has(n)) delete playerData[n]; });
+      if(msg.players){
+        updateLobbyList(msg.players,hostPlayerName);
+        const ns=new Set(msg.players);
+        Object.keys(playerData).forEach(n=>{if(!ns.has(n))delete playerData[n];});
         renderPlayers();
       }
-      addChat(`👋 <strong>${esc(msg.name)}</strong> left.`, "system");
+      addChat(`👋 <strong>${esc(msg.name)}</strong> left.`,"system");
       break;
 
     case "settingsUpdated":
-      totalRounds = msg.roundsTotal;
-      roundTime   = msg.roundTime;
-      // Keep selects in sync
-      settingRounds.value = msg.roundsTotal;
-      settingTime.value = msg.roundTime;
-      if (!isHost) {
-        addChat(`⚙️ Host updated settings: ${msg.roundsTotal} rounds, ${msg.roundTime}s/turn`, "system");
-      }
+      totalRounds=msg.roundsTotal; roundTime=msg.roundTime;
+      settingRounds.value=msg.roundsTotal; settingTime.value=msg.roundTime;
+      if(!isHost) addChat(`⚙️ Host updated: ${msg.roundsTotal} rounds, ${msg.roundTime}s/turn`,"system");
       break;
 
     case "error":
-      addChat(`❌ ${esc(msg.text)}`, "system");
-      break;
+      addChat(`❌ ${esc(msg.text)}`,"system"); break;
 
     case "gameStarting":
-      playerData = {};
-      msg.players.forEach(n => playerData[n] = { score:0, drawing:false, guessed:false });
-      totalRounds = msg.roundsTotal || totalRounds;
-      roundTime   = msg.roundTime   || roundTime;
-      roundNum = 1;
-      switchToGame();
-      renderPlayers();
-      roundBadge.textContent = `Round 1/${totalRounds}`;
-      addChat("🎮 Game starting!", "system");
+      playerData={};
+      msg.players.forEach(n=>playerData[n]={score:0,drawing:false,guessed:false});
+      totalRounds=msg.roundsTotal||totalRounds; roundTime=msg.roundTime||roundTime;
+      roundNum=1; switchToGame(); renderPlayers();
+      roundBadge.textContent=`Rd 1/${totalRounds}`;
+      addChat("🎮 Game starting!","system");
       break;
 
     case "roundInfo":
-      // Server tells us the new round number
-      roundNum = msg.round;
-      roundBadge.textContent = `Round ${roundNum}/${msg.roundsTotal}`;
+      roundNum=msg.round;
+      roundBadge.textContent=`Rd ${roundNum}/${msg.roundsTotal}`;
       break;
 
     case "phase":
-      roundBadge.textContent = `Round ${roundNum}/${totalRounds}`;
-      Object.keys(playerData).forEach(n => { playerData[n].drawing=false; playerData[n].guessed=false; });
+      roundBadge.textContent=`Rd ${roundNum}/${totalRounds}`;
+      Object.keys(playerData).forEach(n=>{playerData[n].drawing=false;playerData[n].guessed=false;});
 
-      if (msg.phase === "choosing") {
-        myRole = "drawer";
-        toolbar.classList.remove("hidden");
-        wordDisplay.textContent = "Choose a word!";
-        timerEl.textContent = "";
-        strokeHistory = [];
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (playerData[msg.drawer]) playerData[msg.drawer].drawing = true;
-        renderPlayers();
-        choosingBanner.style.display = "none";
-        // Chat enabled for drawer too
-        chatInput.disabled = false;
-        chatInput.placeholder = "Chat (you're drawing)…";
+      if(msg.phase==="choosing"){
+        myRole="drawer"; showDrawingTools(true);
+        wordDisplay.textContent="Choose word!";
+        timerEl.textContent="";
+        strokeHistory=[]; ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(playerData[msg.drawer])playerData[msg.drawer].drawing=true;
+        renderPlayers(); choosingBanner.style.display="none";
+        setChatDisabled(false,"Chat (you're drawing)…");
       }
-
-      if (msg.phase === "choosingWait") {
-        myRole = "guesser";
-        toolbar.classList.add("hidden");
-        wordDisplay.textContent = `${esc(msg.drawer)} is choosing…`;
-        timerEl.textContent = "";
-        chatInput.disabled = false;
-        chatInput.placeholder = "Type your guess…";
-        strokeHistory = [];
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (playerData[msg.drawer]) playerData[msg.drawer].drawing = true;
+      if(msg.phase==="choosingWait"){
+        myRole="guesser"; showDrawingTools(false);
+        wordDisplay.textContent=`${esc(msg.drawer)} choosing…`;
+        timerEl.textContent="";
+        strokeHistory=[]; ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(playerData[msg.drawer])playerData[msg.drawer].drawing=true;
         renderPlayers();
-        choosingBanner.textContent = `✏️ ${msg.drawer} is picking a word…`;
-        choosingBanner.style.display = "block";
-        ws.send(JSON.stringify({ type:"requestStrokes" }));
+        choosingBanner.textContent=`✏️ ${msg.drawer} is picking a word…`;
+        choosingBanner.style.display="block";
+        setChatDisabled(false,"Type your guess…");
+        ws.send(JSON.stringify({type:"requestStrokes"}));
       }
       break;
 
     case "chooseWord":
-      choosingBanner.style.display = "none";
-      const grid = msg.words.map(w =>
+      choosingBanner.style.display="none";
+      const grid=msg.words.map(w=>
         `<button class="word-choice-btn" onclick="pickWord('${esc(w)}')">${esc(w)}</button>`
       ).join("");
-      showOverlay("Pick Your Word!", `<div class="word-choice-grid">${grid}</div>`);
+      showOverlay("Pick Your Word!",`<div class="word-choice-grid">${grid}</div>`);
       break;
 
     case "drawStart":
-      hideOverlay();
-      choosingBanner.style.display = "none";
-      timerEl.classList.remove("urgent");
-      timerEl.textContent = msg.timeLeft;
-      chatInput.disabled = false;
-
-      if (msg.role === "drawer") {
-        wordDisplay.textContent = msg.word.toUpperCase();
-        myRole = "drawer";
-        toolbar.classList.remove("hidden");
-        chatInput.placeholder = "Chat (you're drawing)…";
+      hideOverlay(); choosingBanner.style.display="none";
+      timerEl.classList.remove("urgent"); timerEl.textContent=msg.timeLeft;
+      if(msg.role==="drawer"){
+        wordDisplay.textContent=msg.word.toUpperCase();
+        myRole="drawer"; showDrawingTools(true);
+        setChatDisabled(false,"Chat (you're drawing)…");
       } else {
-        wordDisplay.textContent = msg.masked.split("").join(" ");
-        myRole = "guesser";
-        toolbar.classList.add("hidden");
-        chatInput.placeholder = "Type your guess…";
-        addChat(`✏️ <strong>${esc(msg.drawer)}</strong> is drawing — ${esc(msg.hint)}`, "system");
+        wordDisplay.textContent=msg.masked.split("").join(" ");
+        myRole="guesser"; showDrawingTools(false);
+        setChatDisabled(false,"Type your guess…");
+        addChat(`✏️ <strong>${esc(msg.drawer)}</strong> is drawing — ${esc(msg.hint)}`,"system");
       }
       break;
 
     case "tick":
-      timerEl.textContent = msg.t;
-      timerEl.classList.toggle("urgent", msg.t <= 10);
+      timerEl.textContent=msg.t;
+      timerEl.classList.toggle("urgent",msg.t<=10);
       break;
 
     case "draw":
       drawSeg(msg.data);
-      if (myRole !== "drawer") {
-        if (!strokeHistory.length || strokeHistory[strokeHistory.length-1] === null) {
-          strokeHistory.push([]);
-        }
-        const last = strokeHistory[strokeHistory.length-1];
-        if (Array.isArray(last)) last.push(msg.data);
+      if(myRole!=="drawer"){
+        if(!strokeHistory.length)strokeHistory.push([]);
+        const last=strokeHistory[strokeHistory.length-1];
+        if(Array.isArray(last))last.push(msg.data);
       }
       break;
 
     case "fill":
-      // Apply fill on guesser side too — fix: always apply regardless of role
-      floodFill(msg.data.x, msg.data.y, msg.data.c);
+      floodFill(msg.data.x,msg.data.y,msg.data.c);
       break;
 
     case "strokes":
-      strokeHistory = [];
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      let grp = [];
-      (msg.strokes || []).forEach(s => {
-        if (s === null) { strokeHistory.push(grp); grp = []; }
-        else if (s && s.fill) {
-          // It's a fill stroke — apply it
-          floodFill(s.x, s.y, s.c);
-        } else {
-          grp.push(s); drawSeg(s);
-        }
+      strokeHistory=[]; ctx.clearRect(0,0,canvas.width,canvas.height);
+      let grp=[];
+      (msg.strokes||[]).forEach(s=>{
+        if(s===null){strokeHistory.push(grp);grp=[];}
+        else if(s&&s.fill){floodFill(s.x,s.y,s.c);}
+        else{grp.push(s);drawSeg(s);}
       });
-      if (grp.length) strokeHistory.push(grp);
+      if(grp.length)strokeHistory.push(grp);
       break;
 
     case "redrawStrokes":
-      strokeHistory = [];
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      let rgrp = [];
-      (msg.strokes || []).forEach(s => {
-        if (s === null) { strokeHistory.push(rgrp); rgrp = []; }
-        else if (s && s.fill) {
-          floodFill(s.x, s.y, s.c);
-        } else {
-          rgrp.push(s); drawSeg(s);
-        }
+      strokeHistory=[]; ctx.clearRect(0,0,canvas.width,canvas.height);
+      let rgrp=[];
+      (msg.strokes||[]).forEach(s=>{
+        if(s===null){strokeHistory.push(rgrp);rgrp=[];}
+        else if(s&&s.fill){floodFill(s.x,s.y,s.c);}
+        else{rgrp.push(s);drawSeg(s);}
       });
-      if (rgrp.length) strokeHistory.push(rgrp);
+      if(rgrp.length)strokeHistory.push(rgrp);
       break;
 
     case "clearCanvas":
-      strokeHistory = [];
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      strokeHistory=[]; ctx.clearRect(0,0,canvas.width,canvas.height);
       break;
 
     case "correctGuess":
-      addChat(`🎉 <strong>${esc(msg.name)}</strong> guessed it!`, "correct");
-      if (playerData[msg.name]) { playerData[msg.name].score = msg.score; playerData[msg.name].guessed = true; }
-      const dname = Object.keys(playerData).find(n => playerData[n].drawing);
-      if (dname) playerData[dname].score = msg.drawerScore;
+      addChat(`🎉 <strong>${esc(msg.name)}</strong> guessed it!`,"correct");
+      if(playerData[msg.name]){playerData[msg.name].score=msg.score;playerData[msg.name].guessed=true;}
+      const dn=Object.keys(playerData).find(n=>playerData[n].drawing);
+      if(dn)playerData[dn].score=msg.drawerScore;
       renderPlayers();
-      if (msg.name === myName) {
-        chatInput.disabled = true;
-        chatInput.placeholder = "You guessed it! ✅";
-      }
+      if(msg.name===myName) setChatDisabled(true,"You guessed it! ✅");
       break;
 
     case "chat":
-      if (msg.isDrawer) {
-        // Drawer chatted — style differently
-        addChat(`<strong>${esc(msg.name)} ✏️:</strong> ${esc(msg.text)}`, "drawer-chat");
+      if(msg.isDrawer){
+        addChat(`<strong>${esc(msg.name)} ✏️:</strong> ${esc(msg.text)}`,"drawer-chat");
       } else {
-        addChat(`<strong>${esc(msg.name)}:</strong> ${esc(msg.text)}`, msg.name===myName?"self":"");
+        addChat(`<strong>${esc(msg.name)}:</strong> ${esc(msg.text)}`,msg.name===myName?"self":"");
       }
       break;
 
     case "roundEnd":
-      roundNum = msg.round || roundNum;
-      timerEl.classList.remove("urgent");
-      timerEl.textContent = "";
-      chatInput.disabled = false;
-      chatInput.placeholder = "Type guess…";
-      toolbar.classList.add("hidden");
-      wordDisplay.textContent = "- - -";
-      myRole = "guesser";
-      const rows = msg.scores.map((s, i) =>
+      roundNum=msg.round||roundNum;
+      timerEl.classList.remove("urgent"); timerEl.textContent="";
+      setChatDisabled(false,"Type guess…");
+      showDrawingTools(false);
+      wordDisplay.textContent="- - -"; myRole="guesser";
+      const rows=msg.scores.map((s,i)=>
         `<div class="score-row"><span>${["🥇","🥈","🥉"][i]||"  "} ${esc(s.name)}</span><span>${s.score} pts</span></div>`
       ).join("");
       showOverlay(`Word was: ${esc(msg.word)}`,
-        `<div style="display:flex;flex-direction:column;gap:7px;margin-top:4px">${rows}</div>`);
-      msg.scores.forEach(s => { if (playerData[s.name]) playerData[s.name].score = s.score; });
+        `<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">${rows}</div>`);
+      msg.scores.forEach(s=>{if(playerData[s.name])playerData[s.name].score=s.score;});
       renderPlayers();
       break;
 
     case "gameEnd":
-      timerEl.textContent = "";
-      wordDisplay.textContent = "Game Over!";
-      myRole = "guesser";
-      toolbar.classList.add("hidden");
-      const frows = msg.scores.map((s, i) =>
+      timerEl.textContent=""; wordDisplay.textContent="Game Over!";
+      myRole="guesser"; showDrawingTools(false);
+      const frows=msg.scores.map((s,i)=>
         `<div class="score-row"><span>${["🥇","🥈","🥉"][i]||"  "} ${esc(s.name)}</span><span>${s.score} pts</span></div>`
       ).join("");
-      const playAgainBtn = isHost
-        ? `<button class="btn btn-teal" style="width:100%;font-size:18px" onclick="restartGame()">Play Again!</button>`
-        : `<div style="font-size:13px;opacity:.6;margin-top:4px">Waiting for host to restart…</div>`;
-      showOverlay("🏆 Game Over!", `
-        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px">${frows}</div>
-        ${playAgainBtn}
+      const playBtn=isHost
+        ?`<button class="btn btn-teal" style="font-size:18px" onclick="restartGame()">Play Again!</button>`
+        :`<div style="font-size:12px;opacity:.6;margin-top:4px">Waiting for host to restart…</div>`;
+      showOverlay("🏆 Game Over!",`
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">${frows}</div>
+        ${playBtn}
       `);
       break;
   }
 }
 
-// ── Actions ───────────────────────────────────────────────────────
-window.pickWord = function(word) {
-  ws.send(JSON.stringify({ type:"wordChosen", word }));
-  hideOverlay();
-  wordDisplay.textContent = word.toUpperCase();
+// ── Actions ────────────────────────────────────────────────────
+window.pickWord=function(word){
+  ws.send(JSON.stringify({type:"wordChosen",word}));
+  hideOverlay(); wordDisplay.textContent=word.toUpperCase();
 };
 
-function restartGame() {
+function restartGame(){
   hideOverlay();
-  Object.keys(playerData).forEach(n => {
-    playerData[n].score = 0;
-    playerData[n].drawing = false;
-    playerData[n].guessed = false;
-  });
-  strokeHistory = [];
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ws.send(JSON.stringify({ type:"startGame" }));
+  Object.keys(playerData).forEach(n=>{playerData[n].score=0;playerData[n].drawing=false;playerData[n].guessed=false;});
+  strokeHistory=[]; ctx.clearRect(0,0,canvas.width,canvas.height);
+  ws.send(JSON.stringify({type:"startGame"}));
 }
 
-// ── Lobby events ──────────────────────────────────────────────────
-createBtn.addEventListener("click", () => {
-  const name = nameInput.value.trim() || "Player";
-  // Generate a random room code for the creator
-  const room = Math.random().toString(36).slice(2,8).toUpperCase();
-  // Pre-apply settings
-  const rounds = parseInt(settingRoundsL.value);
-  const time = parseInt(settingTimeL.value);
-  // We send join first, then updateSettings after join is confirmed
-  window._pendingSettings = { rounds, time };
-  connect(name, room);
-});
-
-joinBtn.addEventListener("click", () => {
-  const name = nameInput.value.trim() || "Player";
-  const room = roomInput.value.trim();
-  if (!room) { alert("Please enter a room code!"); return; }
-  connect(name, room.toUpperCase());
-});
-
-nameInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    if (lobbyMode === "create") createBtn.click();
-    else joinBtn.click();
-  }
-});
-roomInput.addEventListener("keydown", e => { if (e.key === "Enter") joinBtn.click(); });
-
-// Override connect to apply pending settings after join
-const _origConnect = connect;
-
-// Patch handleMsg to apply pending settings after "joined"
-const _origHandleMsg = handleMsg;
-
-// Apply creator's pre-selected settings right after joining
-function applyPendingSettings() {
-  if (window._pendingSettings && isHost && ws) {
-    ws.send(JSON.stringify({
-      type: "updateSettings",
-      roundsTotal: window._pendingSettings.rounds,
-      roundTime: window._pendingSettings.time,
-    }));
-    window._pendingSettings = null;
+// ── Pending settings helper ────────────────────────────────────
+function applyPendingSettings(){
+  if(window._pendingSettings&&isHost&&ws){
+    ws.send(JSON.stringify({type:"updateSettings",roundsTotal:window._pendingSettings.rounds,roundTime:window._pendingSettings.time}));
+    window._pendingSettings=null;
   }
 }
-
-// Patch ws message handler to call applyPendingSettings after "joined"
-const origWsOnMessage = null;
-function patchedHandleMsg(msg) {
+function patchedHandleMsg(msg){
   handleMsg(msg);
-  if (msg.type === "joined" && isHost) {
-    applyPendingSettings();
-  }
+  if(msg.type==="joined"&&isHost) applyPendingSettings();
 }
 
-// Re-assign the ws message handler to use patched version
-function connect(name, room) {
-  ws = new WebSocket(WS_URL);
-  ws.onopen    = () => ws.send(JSON.stringify({ type:"join", name, room }));
-  ws.onmessage = e => patchedHandleMsg(JSON.parse(e.data));
-  ws.onclose   = () => addChat("⚠️ Disconnected.", "system");
-}
-
-startBtn.addEventListener("click", () => {
-  if (!isHost) return;
-  ws && ws.send(JSON.stringify({ type:"startGame" }));
+// ── Lobby events ───────────────────────────────────────────────
+createBtn.addEventListener("click",()=>{
+  const name=nameInput.value.trim()||"Player";
+  const room=Math.random().toString(36).slice(2,8).toUpperCase();
+  window._pendingSettings={rounds:parseInt(settingRoundsL.value),time:parseInt(settingTimeL.value)};
+  connect(name,room);
 });
+joinBtn.addEventListener("click",()=>{
+  const name=nameInput.value.trim()||"Player";
+  const room=roomInput.value.trim();
+  if(!room){alert("Please enter a room code!");return;}
+  connect(name,room.toUpperCase());
+});
+nameInput.addEventListener("keydown",e=>{if(e.key==="Enter"){lobbyMode==="create"?createBtn.click():joinBtn.click();}});
+roomInput.addEventListener("keydown",e=>{if(e.key==="Enter")joinBtn.click();});
+startBtn.addEventListener("click",()=>{if(!isHost)return;ws&&ws.send(JSON.stringify({type:"startGame"}));});
 </script>
 </body>
 </html>
